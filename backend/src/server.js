@@ -8,7 +8,7 @@ const app = express();
 app.use(cors({ origin: 'http://localhost:8000' }));
 app.use(express.json());
 
-if (env.NODE_ENV === "production") job.start();
+if (env.NODE_ENV === 'production') job.start();
 
 // --- CATEGORIES ---
 app.post('/categories', async (req, res) => {
