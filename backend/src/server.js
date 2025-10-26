@@ -2,10 +2,13 @@ const express = require('express');
 const cors = require('cors');
 const env = require('./config/env.js');
 const { db, schema } = require('./config/db.js');
+const job = require('./config/cron.js');
 
 const app = express();
 app.use(cors({ origin: 'http://localhost:8000' }));
 app.use(express.json());
+
+if (env.NODE_ENV === "production") job.start();
 
 // --- CATEGORIES ---
 app.post('/categories', async (req, res) => {
@@ -66,6 +69,10 @@ app.delete('/transactions/:id', async (req, res) => {
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
+});
+
+app.get("/api/health", (req, res) => {
+    res.status(200).json({ success: true });
 });
 
 const PORT = env.PORT || 7000;
