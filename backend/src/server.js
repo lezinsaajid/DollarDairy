@@ -2,11 +2,17 @@ const express = require('express');
 const cors = require('cors');
 const env = require('./config/env.js');
 const { db, schema } = require('./config/db.js');
+const { and, eq } = require("drizzle-orm");
 const job = require('./config/cron.js');
 
 const app = express();
-app.use(express.json());
 const PORT = env.PORT || 7000;
+
+if (env.NODE_ENV === "production") {
+    job.start();
+}
+
+app.use(express.json());
 
 app.get("/api/health", (req, res) => {
     res.status(200).json({ success: true });
@@ -72,6 +78,7 @@ app.delete('/transactions/:id', async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
+
 
 
 app.listen(PORT, () => {
