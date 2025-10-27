@@ -9,8 +9,6 @@ app.use(express.json());
 const PORT = env.PORT || 7000;
 
 
-if (env.NODE_ENV === 'production') job.start();
-
 
 app.get("/api/health", (req, res) => {
     res.status(200).json({ success: true });
