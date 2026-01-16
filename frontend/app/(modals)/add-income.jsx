@@ -63,10 +63,10 @@ const AddIncomePage = () => {
                 {/* Header */}
                 <View style={commonStyles.header}>
                     <TouchableOpacity
-                        style={commonStyles.headerIcon}
-                        onPress={() => router.back()}
+                      style={commonStyles.headerIcon}
+                      onPress={() => router.push("/(tabs)/add")}
                     >
-                        <Ionicons name="arrow-back" size={24} color={COLORS.text} />
+                      <Ionicons name="arrow-back" size={24} color={COLORS.text} />
                     </TouchableOpacity>
                     <Text style={commonStyles.headerTitle}>Add Income</Text>
                     <View style={{ width: 24 }} />

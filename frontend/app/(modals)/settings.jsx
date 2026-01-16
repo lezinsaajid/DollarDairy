@@ -74,11 +74,12 @@ const SettingsPage = () => {
             {/* Header */}
             <View style={commonStyles.header}>
                 <TouchableOpacity
-                    style={commonStyles.headerIcon}
-                    onPress={() => router.back()}
-                >
-                    <Ionicons name="arrow-back" size={24} color={COLORS.text} />
-                </TouchableOpacity>
+  style={commonStyles.headerIcon}
+  onPress={() => router.push("/(tabs)/profile")}
+>
+  <Ionicons name="arrow-back" size={24} color={COLORS.text} />
+</TouchableOpacity>
+
                 <Text style={commonStyles.headerTitle}>Settings</Text>
                 <View style={{ width: 24 }} />
             </View>

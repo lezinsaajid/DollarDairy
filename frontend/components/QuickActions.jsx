@@ -11,16 +11,34 @@ import {
     ScrollView,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import SafeScreen from "./SafeScreen";
 import { COLORS } from "@/constants/colors";
 
 const { width } = Dimensions.get("window");
-const DRAWER_WIDTH = width * 0.75; // 75% of screen width
+const DRAWER_WIDTH = width * 0.75; // Drawer takes 75% of screen width
 
+/**
+ * QuickActions Side Drawer Component
+ * 
+ * Shows a slide-in drawer from the left with action items
+ * 
+ * Props:
+ * - visible: Boolean to show/hide drawer
+ * - onClose: Function called when drawer is closed
+ * - actions: Array of action objects with { icon, label, color, onPress }
+ */
 const QuickActions = ({ visible, onClose, actions }) => {
+    // Animation for slide-in effect
     const slideAnim = React.useRef(new Animated.Value(-DRAWER_WIDTH)).current;
+    
+    // Get safe area insets for bottom padding
+    const insets = useSafeAreaInsets();
 
+    // Animate drawer when visible prop changes
     React.useEffect(() => {
         if (visible) {
+            // Slide in with spring animation
             Animated.spring(slideAnim, {
                 toValue: 0,
                 useNativeDriver: true,
@@ -28,6 +46,7 @@ const QuickActions = ({ visible, onClose, actions }) => {
                 friction: 11,
             }).start();
         } else {
+            // Slide out with timing animation
             Animated.timing(slideAnim, {
                 toValue: -DRAWER_WIDTH,
                 duration: 250,
@@ -44,8 +63,10 @@ const QuickActions = ({ visible, onClose, actions }) => {
             onRequestClose={onClose}
         >
             <View style={styles.container}>
+                {/* Dark overlay - tap to close */}
                 <Pressable style={styles.overlay} onPress={onClose} />
                 
+                {/* Animated drawer that slides in from left */}
                 <Animated.View
                     style={[
                         styles.drawer,
@@ -54,53 +75,85 @@ const QuickActions = ({ visible, onClose, actions }) => {
                         },
                     ]}
                 >
-                    <View style={styles.header}>
-                        <Text style={{fontFamily: "NimbusReg",
+                    {/* 
+                        SafeScreen handles top safe area (notch/status bar)
+                        Set backgroundColor to transparent so drawer background shows through
+                    */}
+                    <SafeScreen 
+                        backgroundColor="transparent"
+                        style={{ paddingTop: 0 }} // Override default padding, we'll handle it manually
+                    >
+                        {/* Manual top padding for safe area */}
+                        <View style={{ paddingTop: insets.top }}>
+                            {/* Header with app title and close button */}
+                            <View style={styles.header}>
+                                <Text
+                                    style={{
+                                        fontFamily: "NimbusReg",
                                         fontSize: 28,
                                         fontWeight: "bold",
                                         color: COLORS.text,
-                                        marginBottom: 9,
-                                        textAlign: "center",}}>DOLLAR DAIRY</Text>
-                        <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-                            <Ionicons name="close" size={24} color={COLORS.text} />
-                        </TouchableOpacity>
-                    </View>
-
-                    <ScrollView
-                        showsVerticalScrollIndicator={false}
-                        contentContainerStyle={styles.actionsContainer}
-                    >
-                        {actions.map((action, index) => (
-                            <TouchableOpacity
-                                key={index}
-                                style={styles.actionItem}
-                                onPress={() => {
-                                    onClose();
-                                    action.onPress();
-                                }}
-                                activeOpacity={0.7}
-                            >
-                                <View
-                                    style={[
-                                        styles.actionIcon,
-                                        { backgroundColor: action.color + "15" },
-                                    ]}
+                                        marginBottom: -9,
+                                        textAlign: "center",
+                                    }}
                                 >
-                                    <Ionicons
-                                        name={action.icon}
-                                        size={22}
-                                        color={action.color}
-                                    />
-                                </View>
-                                <Text style={styles.actionText}>{action.label}</Text>
-                                <Ionicons
-                                    name="chevron-forward"
-                                    size={20}
-                                    color={COLORS.textLight}
-                                />
-                            </TouchableOpacity>
-                        ))}
-                    </ScrollView>
+                                    DOLLAR DAIRY
+                                </Text>
+                                <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+                                    <Ionicons name="close" size={24} color={COLORS.text} />
+                                </TouchableOpacity>
+                            </View>
+
+                            {/* Scrollable list of action items */}
+                            <ScrollView
+                                showsVerticalScrollIndicator={false}
+                                contentContainerStyle={[
+                                    styles.actionsContainer,
+                                    { 
+                                        // Add bottom padding to avoid home indicator
+                                        paddingBottom: insets.bottom + 40 
+                                    }
+                                ]}
+                            >
+                                {/* Render each action item */}
+                                {actions.map((action, index) => (
+                                    <TouchableOpacity
+                                        key={index}
+                                        style={styles.actionItem}
+                                        onPress={() => {
+                                            onClose(); // Close drawer first
+                                            action.onPress(); // Then execute action
+                                        }}
+                                        activeOpacity={0.7}
+                                    >
+                                        {/* Icon with colored background */}
+                                        <View
+                                            style={[
+                                                styles.actionIcon,
+                                                { backgroundColor: action.color + "15" }, // 15 = 15% opacity
+                                            ]}
+                                        >
+                                            <Ionicons
+                                                name={action.icon}
+                                                size={22}
+                                                color={action.color}
+                                            />
+                                        </View>
+                                        
+                                        {/* Action label text */}
+                                        <Text style={styles.actionText}>{action.label}</Text>
+                                        
+                                        {/* Chevron arrow on right */}
+                                        <Ionicons
+                                            name="chevron-forward"
+                                            size={20}
+                                            color={COLORS.textLight}
+                                        />
+                                    </TouchableOpacity>
+                                ))}
+                            </ScrollView>
+                        </View>
+                    </SafeScreen>
                 </Animated.View>
             </View>
         </Modal>
@@ -112,36 +165,38 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     overlay: {
+        // Cover entire screen with semi-transparent black
         ...StyleSheet.absoluteFillObject,
         backgroundColor: "rgba(0, 0, 0, 0.5)",
     },
     drawer: {
+        // Fixed position drawer on left side
         position: "absolute",
         left: 0,
         top: 0,
         bottom: 0,
         width: DRAWER_WIDTH,
         backgroundColor: COLORS.background,
+        
+        // Shadow for iOS
         shadowColor: COLORS.shadow,
         shadowOffset: { width: 2, height: 0 },
         shadowOpacity: 0.3,
         shadowRadius: 8,
+        
+        // Elevation for Android
         elevation: 16,
     },
     header: {
+        // Header with title and close button
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "center",
         paddingHorizontal: 20,
-        paddingTop: 60,
+        paddingTop: 16,
         paddingBottom: 20,
         borderBottomWidth: 1,
         borderBottomColor: COLORS.border,
-    },
-    title: {
-        fontSize: 24,
-        fontWeight: "600",
-        color: COLORS.text,
     },
     closeButton: {
         padding: 4,
@@ -152,9 +207,10 @@ const styles = StyleSheet.create({
     },
     actionsContainer: {
         padding: 20,
-        gap: 12,
+        gap: 12, // Space between action items
     },
     actionItem: {
+        // Individual action button
         flexDirection: "row",
         alignItems: "center",
         backgroundColor: COLORS.card,
@@ -162,6 +218,8 @@ const styles = StyleSheet.create({
         borderRadius: 12,
         borderWidth: 1,
         borderColor: COLORS.border,
+        
+        // Shadow for iOS
         elevation: 1,
         shadowColor: COLORS.shadow,
         shadowOffset: { width: 0, height: 1 },
@@ -169,6 +227,7 @@ const styles = StyleSheet.create({
         shadowRadius: 2,
     },
     actionIcon: {
+        // Icon container with colored background
         width: 48,
         height: 48,
         borderRadius: 12,
@@ -177,6 +236,7 @@ const styles = StyleSheet.create({
         marginRight: 16,
     },
     actionText: {
+        // Action label text
         flex: 1,
         fontSize: 16,
         color: COLORS.text,

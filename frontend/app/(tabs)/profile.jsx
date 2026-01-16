@@ -1,14 +1,16 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
     View,
     Text,
     ScrollView,
     TouchableOpacity,
     Image,
+    ActivityIndicator,
+    Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { useAuth } from "@clerk/clerk-expo";
+import { useAuth, useUser } from "@clerk/clerk-expo";
 import { COLORS } from "../../constants/colors";
 import { commonStyles } from "../../assets/styles/common.styles";
 import { profileStyles } from "../../assets/styles/profile.styles";
@@ -17,12 +19,19 @@ import AvatarPicker from "../../components/AvatarPicker";
 
 const ProfilePage = () => {
     const router = useRouter();
-    const { signOut } = useAuth();
+    const { signOut, getToken } = useAuth();
+    const { user, isLoaded: userLoaded } = useUser();
     const [showQuickActions, setShowQuickActions] = useState(false);
     const [showAvatarPicker, setShowAvatarPicker] = useState(false);
     const [avatarPosition, setAvatarPosition] = useState(null);
-    const [avatar, setAvatar] = useState(null); // null = default icon
+    const [avatar, setAvatar] = useState(null);
+    const [profileData, setProfileData] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
     const avatarRef = useRef(null);
+
+   
+    const API_BASE_URL = "https://dollardairy-uags.onrender.com"; 
 
     // Quick Actions for Profile Page
     const quickActions = [
@@ -99,6 +108,49 @@ const ProfilePage = () => {
         },
     ];
 
+    const fetchProfileData = async () => {
+        if (!userLoaded || !user) {
+            setLoading(false);
+            return;
+        }
+
+        try {
+            setLoading(true);
+            setError(null);
+            const token = await getToken();
+            
+            const response = await fetch(`${API_BASE_URL}/profile`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            setProfileData(data);
+            
+            // Set avatar if available from backend
+            if (data.avatar) {
+                setAvatar({ uri: data.avatar });
+            }
+        } catch (err) {
+            console.error('Profile fetch error:', err);
+            setError(err.message);
+            Alert.alert('Error', 'Failed to load profile data. Please try again.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchProfileData();
+    }, [userLoaded, user]);
+
     const handleOpenAvatarPicker = () => {
         if (avatarRef.current) {
             avatarRef.current.measure((x, y, width, height, pageX, pageY) => {
@@ -110,10 +162,38 @@ const ProfilePage = () => {
         }
     };
 
-    const handleSelectAvatar = (selectedAvatar) => {
+    const handleSelectAvatar = async (selectedAvatar) => {
         setAvatar(selectedAvatar);
-        // TODO: Upload to backend
-        console.log("Avatar selected:", selectedAvatar);
+        
+        // Upload to backend
+        try {
+            const token = await getToken();
+            const formData = new FormData();
+            if (selectedAvatar.uri.startsWith('file://') || selectedAvatar.uri.startsWith('content://')) {
+                formData.append('avatar', {
+                    uri: selectedAvatar.uri,
+                    type: 'image/jpeg',
+                    name: 'avatar.jpg',
+                });
+            } else {
+                formData.append('avatarUrl', selectedAvatar.uri);
+            }
+
+            const response = await fetch(`${API_BASE_URL}/profile/avatar`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                },
+                body: formData,
+            });
+
+            if (!response.ok) {
+                throw new Error('Upload failed');
+            }
+        } catch (err) {
+            console.error('Avatar upload error:', err);
+            Alert.alert('Error', 'Failed to update avatar.');
+        }
     };
 
     const handleLogout = async () => {
@@ -124,6 +204,17 @@ const ProfilePage = () => {
             console.error("Error signing out:", error);
         }
     };
+
+    if (loading) {
+        return (
+            <View style={{ flex: 1, backgroundColor: COLORS.background, justifyContent: 'center', alignItems: 'center' }}>
+                <ActivityIndicator size="large" color={COLORS.primary} />
+            </View>
+        );
+    }
+
+    const displayName = profileData?.name || user?.fullName || 'Leslie Alexander';
+    const displayEmail = profileData?.email || user?.primaryEmailAddress?.emailAddress || 'leslie@gmail.com';
 
     return (
         <>
@@ -142,7 +233,6 @@ const ProfilePage = () => {
                             fontSize: 28,
                             fontWeight: "bold",
                             color: COLORS.text,
-                            marginBottom: 9,
                             textAlign: "center",
                         }}
                     >
@@ -184,8 +274,13 @@ const ProfilePage = () => {
                                 <Ionicons name="camera" size={18} color={COLORS.white} />
                             </TouchableOpacity>
                         </View>
-                        <Text style={profileStyles.userName}>Leslie Alexander</Text>
-                        <Text style={profileStyles.userEmail}>leslie@gmail.com</Text>
+                        <Text style={profileStyles.userName}>{displayName}</Text>
+                        <Text style={profileStyles.userEmail}>{displayEmail}</Text>
+                        {error && (
+                            <Text style={{ color: '#EF4444', textAlign: 'center', marginTop: 10 }}>
+                                {error}
+                            </Text>
+                        )}
                     </View>
 
                     {/* Menu Items */}

@@ -85,32 +85,6 @@ const EditProfilePage = () => {
                 </View>
 
                 <ScrollView showsVerticalScrollIndicator={false}>
-                    {/* Progress Bar */}
-                    <View style={editProfileStyles.progressContainer}>
-                        <Text style={editProfileStyles.progressText}>
-                            You only need {100 - profileCompletion}% more!
-                        </Text>
-                        <View style={editProfileStyles.progressBar}>
-                            <View
-                                style={[
-                                    editProfileStyles.progressFill,
-                                    { width: `${profileCompletion}%` },
-                                ]}
-                            />
-                        </View>
-                    </View>
-
-                    {/* Avatar Section */}
-                    <View style={editProfileStyles.avatarSection}>
-                        <View style={editProfileStyles.avatarContainer}>
-                            <View style={editProfileStyles.avatar}>
-                                <Ionicons name="person" size={50} color={COLORS.primary} />
-                            </View>
-                            <TouchableOpacity style={editProfileStyles.editAvatarButton}>
-                                <Ionicons name="create" size={16} color={COLORS.white} />
-                            </TouchableOpacity>
-                        </View>
-                    </View>
 
                     {/* Form */}
                     <View style={editProfileStyles.formContainer}>
