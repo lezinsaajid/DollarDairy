@@ -10,6 +10,8 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/colors';
 
+import { Calendar } from "react-native-calendars";
+
 export default function FilterByDate({ visible, onClose, onApplyFilter }) {
   const [selectedRange, setSelectedRange] = useState('all');
   const [customStart, setCustomStart] = useState(null);
@@ -27,6 +29,43 @@ export default function FilterByDate({ visible, onClose, onApplyFilter }) {
   const handleApply = () => {
     onApplyFilter({ range: selectedRange, customStart, customEnd });
     onClose();
+  };
+
+  const onDayPress = (day) => {
+    if (!customStart || (customStart && customEnd)) {
+      setCustomStart(day.dateString);
+      setCustomEnd(null);
+    } else {
+      if (day.dateString < customStart) {
+        setCustomStart(day.dateString);
+        setCustomEnd(null);
+      } else {
+        setCustomEnd(day.dateString);
+      }
+    }
+  };
+
+  const getMarkedDates = () => {
+    let marked = {};
+    if (customStart) {
+      marked[customStart] = { startingDay: true, color: COLORS.primary, textColor: 'white' };
+    }
+    if (customEnd) {
+      marked[customEnd] = { endingDay: true, color: COLORS.primary, textColor: 'white' };
+
+      // Mark dates in between
+      let start = new Date(customStart);
+      let end = new Date(customEnd);
+      let current = new Date(start);
+      current.setDate(current.getDate() + 1);
+
+      while (current < end) {
+        let dateString = current.toISOString().split('T')[0];
+        marked[dateString] = { color: COLORS.primary + '30', textColor: COLORS.text };
+        current.setDate(current.getDate() + 1);
+      }
+    }
+    return marked;
   };
 
   return (
@@ -92,18 +131,38 @@ export default function FilterByDate({ visible, onClose, onApplyFilter }) {
             {selectedRange === 'custom' && (
               <View style={styles.section}>
                 <Text style={styles.sectionTitle}>Custom Date Range</Text>
-                <TouchableOpacity style={styles.dateInput}>
-                  <Text style={styles.dateInputLabel}>Start Date</Text>
-                  <Text style={styles.dateInputValue}>
-                    {customStart ? customStart : 'Select Date'}
+                <Calendar
+                  onDayPress={onDayPress}
+                  markingType={'period'}
+                  markedDates={getMarkedDates()}
+                  theme={{
+                    backgroundColor: COLORS.card,
+                    calendarBackground: COLORS.card,
+                    textSectionTitleColor: COLORS.textLight,
+                    selectedDayBackgroundColor: COLORS.primary,
+                    selectedDayTextColor: '#ffffff',
+                    todayTextColor: COLORS.primary,
+                    dayTextColor: COLORS.text,
+                    textDisabledColor: COLORS.textLight + '50',
+                    dotColor: COLORS.primary,
+                    selectedDotColor: '#ffffff',
+                    arrowColor: COLORS.primary,
+                    monthTextColor: COLORS.text,
+                    indicatorColor: COLORS.primary,
+                    textDayFontWeight: '400',
+                    textMonthFontWeight: 'bold',
+                    textDayHeaderFontWeight: '400',
+                    textDayFontSize: 14,
+                    textMonthFontSize: 16,
+                    textDayHeaderFontSize: 12
+                  }}
+                />
+                <View style={styles.dateDisplay}>
+                  <Text style={styles.dateDisplayText}>
+                    {customStart ? customStart : 'Start Date'}
+                    {customEnd ? ` to ${customEnd}` : ''}
                   </Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.dateInput}>
-                  <Text style={styles.dateInputLabel}>End Date</Text>
-                  <Text style={styles.dateInputValue}>
-                    {customEnd ? customEnd : 'Select Date'}
-                  </Text>
-                </TouchableOpacity>
+                </View>
               </View>
             )}
           </ScrollView>
@@ -250,5 +309,17 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#fff',
+  },
+  dateDisplay: {
+    padding: 16,
+    backgroundColor: COLORS.background,
+    borderRadius: 12,
+    marginTop: 12,
+    alignItems: 'center',
+  },
+  dateDisplayText: {
+    fontSize: 14,
+    color: COLORS.text,
+    fontWeight: '500',
   },
 });

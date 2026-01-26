@@ -14,9 +14,12 @@ import { COLORS } from "../../constants/colors";
 import { commonStyles } from "../../assets/styles/common.styles";
 import { addFormStyles } from "../../assets/styles/addForm.styles";
 
+import { Calendar } from "react-native-calendars";
+
 const AddIncomePage = () => {
     const router = useRouter();
-    const [selectedDate, setSelectedDate] = useState(23);
+    const today = new Date().toISOString().split('T')[0];
+    const [selectedDate, setSelectedDate] = useState(today);
     const [incomeTitle, setIncomeTitle] = useState("");
     const [amount, setAmount] = useState("");
     const [selectedCategory, setSelectedCategory] = useState("Salary");
@@ -63,10 +66,10 @@ const AddIncomePage = () => {
                 {/* Header */}
                 <View style={commonStyles.header}>
                     <TouchableOpacity
-                      style={commonStyles.headerIcon}
-                      onPress={() => router.push("/(tabs)/add")}
+                        style={commonStyles.headerIcon}
+                        onPress={() => router.push("/(tabs)/add")}
                     >
-                      <Ionicons name="arrow-back" size={24} color={COLORS.text} />
+                        <Ionicons name="arrow-back" size={24} color={COLORS.text} />
                     </TouchableOpacity>
                     <Text style={commonStyles.headerTitle}>Add Income</Text>
                     <View style={{ width: 24 }} />
@@ -74,56 +77,38 @@ const AddIncomePage = () => {
 
                 {/* Calendar */}
                 <View style={addFormStyles.calendarContainer}>
-                    <View style={addFormStyles.calendarHeader}>
-                        <TouchableOpacity>
-                            <Ionicons
-                                name="chevron-back"
-                                size={20}
-                                color={COLORS.text}
-                            />
-                        </TouchableOpacity>
-                        <Text style={addFormStyles.calendarMonth}>April 2022</Text>
-                        <TouchableOpacity>
-                            <Ionicons
-                                name="chevron-forward"
-                                size={20}
-                                color={COLORS.text}
-                            />
-                        </TouchableOpacity>
-                    </View>
-
-                    {/* Week Days */}
-                    <View style={addFormStyles.calendarWeekDays}>
-                        {["M", "T", "W", "T", "F", "S", "S"].map((day, index) => (
-                            <Text key={index} style={addFormStyles.weekDay}>
-                                {day}
-                            </Text>
-                        ))}
-                    </View>
-
-                    {/* Calendar Days */}
-                    <View style={addFormStyles.calendarDays}>
-                        {[18, 19, 20, 21, 22, 23, 24].map((day) => (
-                            <TouchableOpacity
-                                key={day}
-                                style={[
-                                    addFormStyles.dayButton,
-                                    selectedDate === day && addFormStyles.selectedDay,
-                                ]}
-                                onPress={() => setSelectedDate(day)}
-                            >
-                                <Text
-                                    style={[
-                                        addFormStyles.dayText,
-                                        selectedDate === day &&
-                                            addFormStyles.selectedDayText,
-                                    ]}
-                                >
-                                    {day}
-                                </Text>
-                            </TouchableOpacity>
-                        ))}
-                    </View>
+                    <Calendar
+                        onDayPress={day => {
+                            setSelectedDate(day.dateString);
+                        }}
+                        markedDates={{
+                            [selectedDate]: { selected: true, disableTouchEvent: true, selectedColor: COLORS.primary }
+                        }}
+                        theme={{
+                            backgroundColor: COLORS.card,
+                            calendarBackground: COLORS.card,
+                            textSectionTitleColor: COLORS.textLight,
+                            selectedDayBackgroundColor: COLORS.primary,
+                            selectedDayTextColor: COLORS.white,
+                            todayTextColor: COLORS.primary,
+                            dayTextColor: COLORS.text,
+                            textDisabledColor: COLORS.textLight + '50',
+                            dotColor: COLORS.primary,
+                            selectedDotColor: COLORS.white,
+                            arrowColor: COLORS.primary,
+                            monthTextColor: COLORS.text,
+                            indicatorColor: COLORS.primary,
+                            textDayFontFamily: 'NimbusReg',
+                            textMonthFontFamily: 'NimbusReg',
+                            textDayHeaderFontFamily: 'NimbusReg',
+                            textDayFontWeight: '400',
+                            textMonthFontWeight: 'bold',
+                            textDayHeaderFontWeight: '400',
+                            textDayFontSize: 14,
+                            textMonthFontSize: 16,
+                            textDayHeaderFontSize: 12
+                        }}
+                    />
                 </View>
 
                 {/* Form */}
@@ -166,7 +151,7 @@ const AddIncomePage = () => {
                                     style={[
                                         addFormStyles.categoryButton,
                                         selectedCategory === category &&
-                                            addFormStyles.categoryButtonActive,
+                                        addFormStyles.categoryButtonActive,
                                     ]}
                                     onPress={() => setSelectedCategory(category)}
                                 >
@@ -174,7 +159,7 @@ const AddIncomePage = () => {
                                         style={[
                                             addFormStyles.categoryText,
                                             selectedCategory === category &&
-                                                addFormStyles.categoryTextActive,
+                                            addFormStyles.categoryTextActive,
                                         ]}
                                     >
                                         {category}

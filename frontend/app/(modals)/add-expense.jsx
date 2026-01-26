@@ -14,9 +14,12 @@ import { COLORS } from "../../constants/colors";
 import { commonStyles } from "../../assets/styles/common.styles";
 import { addFormStyles } from "../../assets/styles/addForm.styles";
 
+import { Calendar } from "react-native-calendars";
+
 const AddExpensePage = () => {
     const router = useRouter();
-    const [selectedDate, setSelectedDate] = useState(23);
+    const today = new Date().toISOString().split('T')[0];
+    const [selectedDate, setSelectedDate] = useState(today);
     const [expenseTitle, setExpenseTitle] = useState("");
     const [amount, setAmount] = useState("");
     const [selectedCategory, setSelectedCategory] = useState("Food");
@@ -63,11 +66,11 @@ const AddExpensePage = () => {
                 {/* Header */}
                 <View style={commonStyles.header}>
                     <TouchableOpacity
-  style={commonStyles.headerIcon}
-  onPress={() => router.push("/(tabs)/add")}
->
-  <Ionicons name="arrow-back" size={24} color={COLORS.text} />
-</TouchableOpacity>
+                        style={commonStyles.headerIcon}
+                        onPress={() => router.push("/(tabs)/add")}
+                    >
+                        <Ionicons name="arrow-back" size={24} color={COLORS.text} />
+                    </TouchableOpacity>
 
                     <Text style={commonStyles.headerTitle}>Add Expense</Text>
                     <View style={{ width: 24 }} />
@@ -75,56 +78,38 @@ const AddExpensePage = () => {
 
                 {/* Calendar */}
                 <View style={addFormStyles.calendarContainer}>
-                    <View style={addFormStyles.calendarHeader}>
-                        <TouchableOpacity>
-                            <Ionicons
-                                name="chevron-back"
-                                size={20}
-                                color={COLORS.text}
-                            />
-                        </TouchableOpacity>
-                        <Text style={addFormStyles.calendarMonth}>April 2022</Text>
-                        <TouchableOpacity>
-                            <Ionicons
-                                name="chevron-forward"
-                                size={20}
-                                color={COLORS.text}
-                            />
-                        </TouchableOpacity>
-                    </View>
-
-                    {/* Week Days */}
-                    <View style={addFormStyles.calendarWeekDays}>
-                        {["M", "T", "W", "T", "F", "S", "S"].map((day, index) => (
-                            <Text key={index} style={addFormStyles.weekDay}>
-                                {day}
-                            </Text>
-                        ))}
-                    </View>
-
-                    {/* Calendar Days */}
-                    <View style={addFormStyles.calendarDays}>
-                        {[18, 19, 20, 21, 22, 23, 24].map((day) => (
-                            <TouchableOpacity
-                                key={day}
-                                style={[
-                                    addFormStyles.dayButton,
-                                    selectedDate === day && addFormStyles.selectedDay,
-                                ]}
-                                onPress={() => setSelectedDate(day)}
-                            >
-                                <Text
-                                    style={[
-                                        addFormStyles.dayText,
-                                        selectedDate === day &&
-                                            addFormStyles.selectedDayText,
-                                    ]}
-                                >
-                                    {day}
-                                </Text>
-                            </TouchableOpacity>
-                        ))}
-                    </View>
+                    <Calendar
+                        onDayPress={day => {
+                            setSelectedDate(day.dateString);
+                        }}
+                        markedDates={{
+                            [selectedDate]: { selected: true, disableTouchEvent: true, selectedColor: COLORS.secondary }
+                        }}
+                        theme={{
+                            backgroundColor: COLORS.card,
+                            calendarBackground: COLORS.card,
+                            textSectionTitleColor: COLORS.textLight,
+                            selectedDayBackgroundColor: COLORS.secondary,
+                            selectedDayTextColor: COLORS.white,
+                            todayTextColor: COLORS.secondary,
+                            dayTextColor: COLORS.text,
+                            textDisabledColor: COLORS.textLight + '50',
+                            dotColor: COLORS.secondary,
+                            selectedDotColor: COLORS.white,
+                            arrowColor: COLORS.secondary,
+                            monthTextColor: COLORS.text,
+                            indicatorColor: COLORS.secondary,
+                            textDayFontFamily: 'NimbusReg',
+                            textMonthFontFamily: 'NimbusReg',
+                            textDayHeaderFontFamily: 'NimbusReg',
+                            textDayFontWeight: '400',
+                            textMonthFontWeight: 'bold',
+                            textDayHeaderFontWeight: '400',
+                            textDayFontSize: 14,
+                            textMonthFontSize: 16,
+                            textDayHeaderFontSize: 12
+                        }}
+                    />
                 </View>
 
                 {/* Form */}
@@ -167,7 +152,7 @@ const AddExpensePage = () => {
                                     style={[
                                         addFormStyles.categoryButton,
                                         selectedCategory === category &&
-                                            addFormStyles.categoryButtonExpenseActive,
+                                        addFormStyles.categoryButtonExpenseActive,
                                     ]}
                                     onPress={() => setSelectedCategory(category)}
                                 >
@@ -175,7 +160,7 @@ const AddExpensePage = () => {
                                         style={[
                                             addFormStyles.categoryText,
                                             selectedCategory === category &&
-                                                addFormStyles.categoryTextActive,
+                                            addFormStyles.categoryTextActive,
                                         ]}
                                     >
                                         {category}
