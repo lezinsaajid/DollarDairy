@@ -32,7 +32,7 @@ app.post('/categories', async (req, res) => {
 app.get('/categories/:userId', async (req, res) => {
     try {
         const { userId } = req.params;
-        const categories = await db.select().from(schema.Categories).where(schema.Categories.userId.eq(Number(userId))).all();
+        const categories = await db.select().from(schema.Categories).where(eq(schema.Categories.userId, userId)).all();
         res.json(categories);
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -53,7 +53,7 @@ app.post('/transactions', async (req, res) => {
 app.get('/transactions/:userId', async (req, res) => {
     try {
         const { userId } = req.params;
-        const transactions = await db.select().from(schema.Transactions).where(schema.Transactions.userId.eq(Number(userId))).all();
+        const transactions = await db.select().from(schema.Transactions).where(eq(schema.Transactions.userId, userId)).all();
         res.json(transactions);
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -63,7 +63,7 @@ app.put('/transactions/:id', async (req, res) => {
     try {
         const { id } = req.params;
         const updates = req.body;
-        await db.update(schema.Transactions).set(updates).where(schema.Transactions.id.eq(Number(id)));
+        await db.update(schema.Transactions).set(updates).where(eq(schema.Transactions.id, Number(id)));
         res.sendStatus(204);
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -72,7 +72,7 @@ app.put('/transactions/:id', async (req, res) => {
 app.delete('/transactions/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        await db.delete(schema.Transactions).where(schema.Transactions.id.eq(Number(id)));
+        await db.delete(schema.Transactions).where(eq(schema.Transactions.id, Number(id)));
         res.sendStatus(204);
     } catch (err) {
         res.status(500).json({ error: err.message });

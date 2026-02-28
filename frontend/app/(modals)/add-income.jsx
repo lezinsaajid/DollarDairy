@@ -16,8 +16,14 @@ import { addFormStyles } from "../../assets/styles/addForm.styles";
 
 import { Calendar } from "react-native-calendars";
 
+import { useUser } from "@clerk/clerk-expo";
+import useTransactionStore from "../../store/useTransactionStore";
+
 const AddIncomePage = () => {
     const router = useRouter();
+    const { user } = useUser();
+    const { addTransaction } = useTransactionStore();
+
     const today = new Date().toISOString().split('T')[0];
     const [selectedDate, setSelectedDate] = useState(today);
     const [incomeTitle, setIncomeTitle] = useState("");
@@ -27,30 +33,26 @@ const AddIncomePage = () => {
     const categories = ["Salary", "Freelance", "Discount", "Investment", "Gift"];
 
     const handleSubmit = async () => {
-        try {
-            // TODO: Replace with your backend API endpoint
-            // const response = await fetch('YOUR_API_ENDPOINT/add-income', {
-            //     method: 'POST',
-            //     headers: { 'Content-Type': 'application/json' },
-            //     body: JSON.stringify({
-            //         title: incomeTitle,
-            //         amount: parseFloat(amount),
-            //         category: selectedCategory,
-            //         date: selectedDate,
-            //     }),
-            // });
+        if (!incomeTitle || !amount) {
+            alert("Please fill in all fields");
+            return;
+        }
 
-            console.log("Income added:", {
+        try {
+            await addTransaction({
+                userId: user.id,
                 title: incomeTitle,
-                amount,
-                category: selectedCategory,
+                amount: parseFloat(amount),
+                type: 'income',
                 date: selectedDate,
+                categoryId: null, // Categories implementation is Phase 2
             });
 
             // Navigate back
             router.back();
         } catch (error) {
             console.error("Error adding income:", error);
+            alert("Failed to add income. Please try again.");
         }
     };
 

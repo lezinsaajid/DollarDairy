@@ -16,8 +16,14 @@ import { addFormStyles } from "../../assets/styles/addForm.styles";
 
 import { Calendar } from "react-native-calendars";
 
+import { useUser } from "@clerk/clerk-expo";
+import useTransactionStore from "../../store/useTransactionStore";
+
 const AddExpensePage = () => {
     const router = useRouter();
+    const { user } = useUser();
+    const { addTransaction } = useTransactionStore();
+
     const today = new Date().toISOString().split('T')[0];
     const [selectedDate, setSelectedDate] = useState(today);
     const [expenseTitle, setExpenseTitle] = useState("");
@@ -27,30 +33,26 @@ const AddExpensePage = () => {
     const categories = ["Food", "Transport", "Shopping", "Bills", "Entertainment"];
 
     const handleSubmit = async () => {
-        try {
-            // TODO: Replace with your backend API endpoint
-            // const response = await fetch('YOUR_API_ENDPOINT/add-expense', {
-            //     method: 'POST',
-            //     headers: { 'Content-Type': 'application/json' },
-            //     body: JSON.stringify({
-            //         title: expenseTitle,
-            //         amount: parseFloat(amount),
-            //         category: selectedCategory,
-            //         date: selectedDate,
-            //     }),
-            // });
+        if (!expenseTitle || !amount) {
+            alert("Please fill in all fields");
+            return;
+        }
 
-            console.log("Expense added:", {
+        try {
+            await addTransaction({
+                userId: user.id,
                 title: expenseTitle,
-                amount,
-                category: selectedCategory,
+                amount: parseFloat(amount),
+                type: 'expense',
                 date: selectedDate,
+                categoryId: null, // Categories implementation is Phase 2
             });
 
             // Navigate back
             router.back();
         } catch (error) {
             console.error("Error adding expense:", error);
+            alert("Failed to add expense. Please try again.");
         }
     };
 
