@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
     View,
     Text,
@@ -7,6 +7,7 @@ import {
     TextInput,
     KeyboardAvoidingView,
     Platform,
+    ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
@@ -31,6 +32,8 @@ const AddIncomePage = () => {
     const [incomeTitle, setIncomeTitle] = useState("");
     const [amount, setAmount] = useState("");
     const [selectedCategory, setSelectedCategory] = useState(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [errors, setErrors] = useState({});
 
     useEffect(() => {
         fetchCategories();
@@ -44,12 +47,27 @@ const AddIncomePage = () => {
         }
     }, [categories]);
 
-    const handleSubmit = async () => {
-        if (!incomeTitle || !amount) {
-            alert("Please fill in all fields");
-            return;
+    const validate = () => {
+        const newErrors = {};
+        if (!incomeTitle.trim()) {
+            newErrors.title = "Title is required";
         }
+        if (!amount) {
+            newErrors.amount = "Amount is required";
+        } else if (isNaN(parseFloat(amount)) || parseFloat(amount) <= 0) {
+            newErrors.amount = "Enter a valid positive amount";
+        }
+        if (!selectedCategory) {
+            newErrors.category = "Category is required";
+        }
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
 
+    const handleSubmit = async () => {
+        if (!validate()) return;
+
+        setIsSubmitting(true);
         try {
             await addTransaction({
                 userId: user.id,
@@ -65,6 +83,8 @@ const AddIncomePage = () => {
         } catch (error) {
             console.error("Error adding income:", error);
             alert("Failed to add income. Please try again.");
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -131,18 +151,28 @@ const AddIncomePage = () => {
                     <View style={addFormStyles.inputGroup}>
                         <Text style={addFormStyles.inputLabel}>Income Title</Text>
                         <TextInput
-                            style={addFormStyles.textInput}
+                            style={[
+                                addFormStyles.textInput,
+                                errors.title && { borderColor: COLORS.error || '#FF4D4D' }
+                            ]}
                             placeholder="Remote Job"
                             placeholderTextColor={COLORS.textLight}
                             value={incomeTitle}
-                            onChangeText={setIncomeTitle}
+                            onChangeText={(text) => {
+                                setIncomeTitle(text);
+                                if (errors.title) setErrors(prev => ({ ...prev, title: null }));
+                            }}
                         />
+                        {errors.title && <Text style={{ color: COLORS.error || '#FF4D4D', fontSize: 12, marginTop: 4, marginLeft: 6 }}>{errors.title}</Text>}
                     </View>
 
                     {/* Amount */}
                     <View style={addFormStyles.inputGroup}>
                         <Text style={addFormStyles.inputLabel}>Amount</Text>
-                        <View style={addFormStyles.amountInput}>
+                        <View style={[
+                            addFormStyles.amountInput,
+                            errors.amount && { borderColor: COLORS.error || '#FF4D4D' }
+                        ]}>
                             <Text style={addFormStyles.amountSymbol}>$</Text>
                             <TextInput
                                 style={{ flex: 1, fontSize: 16, color: COLORS.text }}
@@ -150,9 +180,13 @@ const AddIncomePage = () => {
                                 placeholderTextColor={COLORS.textLight}
                                 keyboardType="numeric"
                                 value={amount}
-                                onChangeText={setAmount}
+                                onChangeText={(text) => {
+                                    setAmount(text);
+                                    if (errors.amount) setErrors(prev => ({ ...prev, amount: null }));
+                                }}
                             />
                         </View>
+                        {errors.amount && <Text style={{ color: COLORS.error || '#FF4D4D', fontSize: 12, marginTop: 4, marginLeft: 6 }}>{errors.amount}</Text>}
                     </View>
 
                     {/* Category */}
@@ -167,7 +201,10 @@ const AddIncomePage = () => {
                                         selectedCategory?.id === category.id &&
                                         addFormStyles.categoryButtonActive,
                                     ]}
-                                    onPress={() => setSelectedCategory(category)}
+                                    onPress={() => {
+                                        setSelectedCategory(category);
+                                        if (errors.category) setErrors(prev => ({ ...prev, category: null }));
+                                    }}
                                 >
                                     <Text
                                         style={[
@@ -187,17 +224,26 @@ const AddIncomePage = () => {
                                 <Ionicons name="add" size={20} color={COLORS.text} />
                             </TouchableOpacity>
                         </View>
+                        {errors.category && <Text style={{ color: COLORS.error || '#FF4D4D', fontSize: 12, marginTop: 4, marginLeft: 6 }}>{errors.category}</Text>}
                     </View>
 
                     {/* Submit Button */}
                     <TouchableOpacity
-                        style={addFormStyles.submitButton}
+                        style={[
+                            addFormStyles.submitButton,
+                            isSubmitting && { opacity: 0.7 }
+                        ]}
                         onPress={handleSubmit}
+                        disabled={isSubmitting}
                         activeOpacity={0.8}
                     >
-                        <Text style={addFormStyles.submitButtonText}>
-                            Add Income
-                        </Text>
+                        {isSubmitting ? (
+                            <ActivityIndicator color={COLORS.white} />
+                        ) : (
+                            <Text style={addFormStyles.submitButtonText}>
+                                Add Income
+                            </Text>
+                        )}
                     </TouchableOpacity>
                 </View>
             </ScrollView>

@@ -195,8 +195,57 @@ const HomePage = () => {
                     </View>
 
                     {transactions.length === 0 ? (
-                        <View style={{ padding: 20, alignItems: 'center' }}>
-                            <Text style={{ color: COLORS.textLight, fontFamily: 'NimbusReg' }}>No transactions found</Text>
+                        <View style={{
+                            padding: 40,
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            backgroundColor: COLORS.card,
+                            borderRadius: 20,
+                            marginTop: 10,
+                            borderWidth: 1,
+                            borderColor: COLORS.border,
+                            borderStyle: 'dashed'
+                        }}>
+                            <View style={{
+                                width: 80,
+                                height: 80,
+                                borderRadius: 40,
+                                backgroundColor: COLORS.primary + '10',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                marginBottom: 16
+                            }}>
+                                <Ionicons name="receipt-outline" size={40} color={COLORS.primary} />
+                            </View>
+                            <Text style={{
+                                color: COLORS.text,
+                                fontSize: 18,
+                                fontWeight: 'bold',
+                                marginBottom: 8,
+                                textAlign: 'center'
+                            }}>No transactions yet</Text>
+                            <Text style={{
+                                color: COLORS.textLight,
+                                fontSize: 14,
+                                textAlign: 'center',
+                                marginBottom: 24,
+                                lineHeight: 20
+                            }}>Start tracking your expenses and income to see them here.</Text>
+
+                            <TouchableOpacity
+                                style={{
+                                    backgroundColor: COLORS.primary,
+                                    paddingVertical: 12,
+                                    paddingHorizontal: 24,
+                                    borderRadius: 12,
+                                    flexDirection: 'row',
+                                    alignItems: 'center'
+                                }}
+                                onPress={() => setShowQuickActions(true)}
+                            >
+                                <Ionicons name="add" size={20} color={COLORS.white} style={{ marginRight: 8 }} />
+                                <Text style={{ color: COLORS.white, fontWeight: '600' }}>Add Transaction</Text>
+                            </TouchableOpacity>
                         </View>
                     ) : (
                         transactions.map((transaction) => {
