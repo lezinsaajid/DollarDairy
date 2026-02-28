@@ -30,11 +30,10 @@ const useTransactionStore = create((set, get) => ({
         });
     },
 
-    fetchTransactions: async (userId) => {
-        if (!userId) return;
+    fetchTransactions: async (filters = {}) => {
         set({ isLoading: true, error: null });
         try {
-            const response = await apiClient.get(`/transactions/${userId}`);
+            const response = await apiClient.get('/transactions', { params: filters });
             const transactions = response.data;
             set({ transactions, isLoading: false });
             get().calculateStats(transactions);

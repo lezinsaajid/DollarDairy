@@ -14,30 +14,31 @@ import { useRouter } from "expo-router";
 import { COLORS } from "../../constants/colors";
 import { commonStyles } from "../../assets/styles/common.styles";
 import { addFormStyles } from "../../assets/styles/addForm.styles";
+import * as ImagePicker from 'expo-image-picker';
+import { useUser } from "@clerk/clerk-expo";
 
 import { Calendar } from "react-native-calendars";
 
-import { useUser } from "@clerk/clerk-expo";
-import useTransactionStore from "../../store/useTransactionStore";
-import useCategoryStore from "../../store/useCategoryStore";
+import { useCategories, useAddTransaction, scanReceipt } from "../../api/queries";
+import { CURRENCIES } from "../../constants/currency";
 
 const AddExpensePage = () => {
     const router = useRouter();
     const { user } = useUser();
-    const { addTransaction } = useTransactionStore();
-    const { categories, fetchCategories } = useCategoryStore();
+    const { mutateAsync: addTransaction } = useAddTransaction();
+    const { data: categories = [] } = useCategories();
 
     const today = new Date().toISOString().split('T')[0];
     const [selectedDate, setSelectedDate] = useState(today);
     const [expenseTitle, setExpenseTitle] = useState("");
     const [amount, setAmount] = useState("");
     const [selectedCategory, setSelectedCategory] = useState(null);
+    const [currency, setCurrency] = useState("USD");
+    const [isRecurring, setIsRecurring] = useState(false);
+    const [frequency, setFrequency] = useState("monthly");
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isScanning, setIsScanning] = useState(false);
     const [errors, setErrors] = useState({});
-
-    useEffect(() => {
-        fetchCategories();
-    }, []);
 
     // Effect to set default category once loaded
     useEffect(() => {
@@ -64,6 +65,33 @@ const AddExpensePage = () => {
         return Object.keys(newErrors).length === 0;
     };
 
+    const handleScanReceipt = async () => {
+        const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
+        if (permissionResult.granted === false) {
+            alert("Permission to access camera is required!");
+            return;
+        }
+
+        const result = await ImagePicker.launchCameraAsync({
+            allowsEditing: true,
+            quality: 0.7,
+        });
+
+        if (!result.canceled) {
+            setIsScanning(true);
+            try {
+                const results = await scanReceipt(result.assets[0].uri);
+                if (results.title) setExpenseTitle(results.title);
+                if (results.amount) setAmount(results.amount.toString());
+                if (results.date) setSelectedDate(results.date);
+            } catch (err) {
+                alert("Failed to scan receipt. Please enter manually.");
+            } finally {
+                setIsScanning(false);
+            }
+        }
+    };
+
     const handleSubmit = async () => {
         if (!validate()) return;
 
@@ -73,9 +101,12 @@ const AddExpensePage = () => {
                 userId: user.id,
                 title: expenseTitle,
                 amount: parseFloat(amount),
+                currency,
                 type: 'expense',
                 date: selectedDate,
                 categoryId: selectedCategory?.id || null,
+                isRecurring,
+                frequency: isRecurring ? frequency : null,
             });
 
             // Navigate back
@@ -98,16 +129,40 @@ const AddExpensePage = () => {
                 showsVerticalScrollIndicator={false}
             >
                 {/* Header */}
-                <View style={commonStyles.header}>
+                {/* Header Top Row */}
+                <View style={{
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    paddingHorizontal: 20,
+                    paddingTop: 10,
+                    marginBottom: 20,
+                }}>
                     <TouchableOpacity
                         style={commonStyles.headerIcon}
-                        onPress={() => router.push("/(tabs)/add")}
+                        onPress={() => router.back()}
                     >
                         <Ionicons name="arrow-back" size={24} color={COLORS.text} />
                     </TouchableOpacity>
 
-                    <Text style={commonStyles.headerTitle}>Add Expense</Text>
-                    <View style={{ width: 24 }} />
+                    <Text style={{
+                        fontFamily: "nimbu-demo",
+                        fontSize: 18,
+                        fontWeight: "600",
+                        color: COLORS.text,
+                    }}>Add Expense</Text>
+
+                    <TouchableOpacity
+                        style={commonStyles.headerIcon}
+                        onPress={handleScanReceipt}
+                        disabled={isScanning}
+                    >
+                        {isScanning ? (
+                            <ActivityIndicator size="small" color={COLORS.secondary} />
+                        ) : (
+                            <Ionicons name="scan" size={24} color={COLORS.secondary} />
+                        )}
+                    </TouchableOpacity>
                 </View>
 
                 {/* Calendar */}
@@ -133,9 +188,9 @@ const AddExpensePage = () => {
                             arrowColor: COLORS.secondary,
                             monthTextColor: COLORS.text,
                             indicatorColor: COLORS.secondary,
-                            textDayFontFamily: 'NimbusReg',
-                            textMonthFontFamily: 'NimbusReg',
-                            textDayHeaderFontFamily: 'NimbusReg',
+                            textDayFontFamily: 'nimbu-demo',
+                            textMonthFontFamily: 'nimbu-demo',
+                            textDayHeaderFontFamily: 'nimbu-demo',
                             textDayFontWeight: '400',
                             textMonthFontWeight: 'bold',
                             textDayHeaderFontWeight: '400',
@@ -174,9 +229,29 @@ const AddExpensePage = () => {
                             addFormStyles.amountInput,
                             errors.amount && { borderColor: COLORS.error || '#FF4D4D' }
                         ]}>
-                            <Text style={addFormStyles.amountSymbol}>$</Text>
+                            {/* Currency Selector */}
+                            <TouchableOpacity
+                                style={{
+                                    paddingHorizontal: 12,
+                                    borderRightWidth: 1,
+                                    borderColor: COLORS.border,
+                                    marginRight: 8,
+                                    flexDirection: 'row',
+                                    alignItems: 'center'
+                                }}
+                                onPress={() => {
+                                    const currentIndex = CURRENCIES.findIndex(c => c.code === currency);
+                                    const nextIndex = (currentIndex + 1) % CURRENCIES.length;
+                                    setCurrency(CURRENCIES[nextIndex].code);
+                                }}
+                            >
+                                <Text style={[addFormStyles.amountSymbol, { fontSize: 18 }]}>
+                                    {CURRENCIES.find(c => c.code === currency)?.symbol}
+                                </Text>
+                            </TouchableOpacity>
+
                             <TextInput
-                                style={{ flex: 1, fontSize: 16, color: COLORS.text }}
+                                style={{ flex: 1, fontSize: 16, color: COLORS.text, fontFamily: "nimbu-demo" }}
                                 placeholder="150"
                                 placeholderTextColor={COLORS.textLight}
                                 keyboardType="numeric"
@@ -186,8 +261,68 @@ const AddExpensePage = () => {
                                     if (errors.amount) setErrors(prev => ({ ...prev, amount: null }));
                                 }}
                             />
+
+                            <View style={{ gap: 4 }}>
+                                <TouchableOpacity onPress={() => setAmount(prev => (parseFloat(prev || 0) + 1).toString())}>
+                                    <Ionicons name="chevron-up" size={16} color={COLORS.textLight} />
+                                </TouchableOpacity>
+                                <TouchableOpacity onPress={() => setAmount(prev => Math.max(0, parseFloat(prev || 0) - 1).toString())}>
+                                    <Ionicons name="chevron-down" size={16} color={COLORS.textLight} />
+                                </TouchableOpacity>
+                            </View>
                         </View>
                         {errors.amount && <Text style={{ color: COLORS.error || '#FF4D4D', fontSize: 12, marginTop: 4, marginLeft: 6 }}>{errors.amount}</Text>}
+                    </View>
+
+                    {/* Recurring Option */}
+                    <View style={addFormStyles.inputGroup}>
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <Text style={addFormStyles.inputLabel}>Recurring Transaction</Text>
+                            <TouchableOpacity
+                                onPress={() => setIsRecurring(!isRecurring)}
+                                style={{
+                                    width: 44,
+                                    height: 24,
+                                    borderRadius: 12,
+                                    backgroundColor: isRecurring ? COLORS.secondary : COLORS.border,
+                                    padding: 2
+                                }}
+                            >
+                                <View style={{
+                                    width: 20,
+                                    height: 20,
+                                    borderRadius: 10,
+                                    backgroundColor: COLORS.white,
+                                    transform: [{ translateX: isRecurring ? 20 : 0 }]
+                                }} />
+                            </TouchableOpacity>
+                        </View>
+
+                        {isRecurring && (
+                            <View style={{ flexDirection: 'row', marginTop: 12 }}>
+                                {['daily', 'weekly', 'monthly'].map((f) => (
+                                    <TouchableOpacity
+                                        key={f}
+                                        style={{
+                                            paddingVertical: 6,
+                                            paddingHorizontal: 12,
+                                            borderRadius: 8,
+                                            backgroundColor: frequency === f ? COLORS.secondary + '20' : COLORS.card,
+                                            borderWidth: 1,
+                                            borderColor: frequency === f ? COLORS.secondary : COLORS.border,
+                                            marginRight: 8
+                                        }}
+                                        onPress={() => setFrequency(f)}
+                                    >
+                                        <Text style={{
+                                            color: frequency === f ? COLORS.secondary : COLORS.text,
+                                            textTransform: 'capitalize',
+                                            fontSize: 12
+                                        }}>{f}</Text>
+                                    </TouchableOpacity>
+                                ))}
+                            </View>
+                        )}
                     </View>
 
                     {/* Category */}

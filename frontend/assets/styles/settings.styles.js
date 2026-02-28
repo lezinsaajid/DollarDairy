@@ -34,6 +34,7 @@ export const settingsStyles = StyleSheet.create({
         fontSize: 16,
         fontWeight: "500",
         color: COLORS.text,
+        fontFamily: "nimbu-demo",
     },
     languageFlag: {
         fontSize: 20,

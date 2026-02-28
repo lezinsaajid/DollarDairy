@@ -28,6 +28,7 @@ export const commonStyles = StyleSheet.create({
         fontSize: 18,
         fontWeight: "600",
         color: COLORS.text,
+        fontFamily: "nimbu-demo",
     },
     headerIcon: {
         padding: 4,
@@ -48,11 +49,13 @@ export const commonStyles = StyleSheet.create({
         fontSize: 18,
         fontWeight: "600",
         color: COLORS.text,
+        fontFamily: "nimbu-demo",
     },
     seeAllText: {
         fontSize: 14,
         color: COLORS.primary,
         fontWeight: "500",
+        fontFamily: "nimbu-demo",
     },
 
     // Transaction Item
@@ -89,14 +92,17 @@ export const commonStyles = StyleSheet.create({
         fontWeight: "500",
         color: COLORS.text,
         marginBottom: 4,
+        fontFamily: "nimbu-demo",
     },
     transactionTime: {
         fontSize: 12,
         color: COLORS.textLight,
+        fontFamily: "nimbu-demo",
     },
     transactionAmount: {
         fontSize: 16,
         fontWeight: "600",
+        fontFamily: "nimbu-demo",
     },
     positiveAmount: {
         color: "#10B981",
@@ -131,6 +137,7 @@ export const commonStyles = StyleSheet.create({
         fontSize: 16,
         fontWeight: "600",
         color: COLORS.white,
+        fontFamily: "nimbu-demo",
     },
     secondaryButton: {
         backgroundColor: COLORS.card,
@@ -144,5 +151,28 @@ export const commonStyles = StyleSheet.create({
         fontSize: 16,
         fontWeight: "600",
         color: COLORS.text,
+        fontFamily: "nimbu-demo",
     },
+
+    // Web Specifics
+    webContainer: {
+        maxWidth: 1200,
+        width: '100%',
+        alignSelf: 'center',
+        paddingHorizontal: Platform.OS === 'web' ? 40 : 20,
+    },
+    desktopGrid: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        flexWrap: 'wrap',
+    },
+    hoverScale: Platform.select({
+        web: {
+            transition: 'transform 0.2s ease-in-out',
+            ':hover': {
+                transform: 'scale(1.02)',
+            }
+        },
+        default: {}
+    })
 });

@@ -1,4 +1,4 @@
-import { StyleSheet } from "react-native";
+import { StyleSheet, Platform } from "react-native";
 import { COLORS } from "@/constants/colors";
 
 export const overviewStyles = StyleSheet.create({
@@ -43,11 +43,13 @@ export const overviewStyles = StyleSheet.create({
         fontSize: 12,
         color: COLORS.textLight,
         marginBottom: 4,
+        fontFamily: "nimbu-demo",
     },
     summaryAmount: {
         fontSize: 18,
         fontWeight: "600",
         color: COLORS.text,
+        fontFamily: "nimbu-demo",
     },
 
     // Statistics Section
@@ -66,11 +68,13 @@ export const overviewStyles = StyleSheet.create({
         fontSize: 14,
         color: COLORS.text,
         fontWeight: "500",
+        fontFamily: "nimbu-demo",
     },
     dateRange: {
         fontSize: 12,
         color: COLORS.textLight,
         marginBottom: 20,
+        fontFamily: "nimbu-demo",
     },
 
     // Chart
@@ -98,6 +102,7 @@ export const overviewStyles = StyleSheet.create({
         fontSize: 10,
         color: COLORS.textLight,
         fontWeight: "500",
+        fontFamily: "nimbu-demo",
     },
     barsContainer: {
         flex: 1,
@@ -131,6 +136,7 @@ export const overviewStyles = StyleSheet.create({
         color: COLORS.textLight,
         marginTop: 8,
         fontWeight: "500",
+        fontFamily: "nimbu-demo",
     },
 
     // Legend
@@ -155,6 +161,7 @@ export const overviewStyles = StyleSheet.create({
         fontSize: 14,
         color: COLORS.text,
         fontWeight: "500",
+        fontFamily: "nimbu-demo",
     },
     legendTextActive: {
         color: COLORS.white,
@@ -170,9 +177,32 @@ export const overviewStyles = StyleSheet.create({
         fontWeight: "500",
         color: COLORS.text,
         marginBottom: 4,
+        fontFamily: "nimbu-demo",
     },
     transactionDate: {
         fontSize: 12,
         color: COLORS.textLight,
+        fontFamily: "nimbu-demo",
     },
+
+    // Desktop Layout
+    desktopGrid: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: 20,
+        paddingHorizontal: 40,
+        paddingTop: 20,
+    },
+    insightGrid: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: 12,
+    },
+    webChartWrapper: Platform.select({
+        web: {
+            alignSelf: 'stretch',
+            width: '100%',
+        },
+        default: {}
+    })
 });

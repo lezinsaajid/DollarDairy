@@ -1,4 +1,4 @@
-import { StyleSheet } from "react-native";
+import { StyleSheet, Platform } from "react-native";
 import { COLORS } from "@/constants/colors";
 
 export const profileStyles = StyleSheet.create({
@@ -13,40 +13,42 @@ export const profileStyles = StyleSheet.create({
         marginBottom: 16,
     },
     avatar: {
-        width: 120,
-        height: 120,
-        borderRadius: 60,
+        width: 140,
+        height: 140,
+        borderRadius: 70,
         backgroundColor: COLORS.primary + "20",
         justifyContent: "center",
         alignItems: "center",
     },
     avatarImage: {
-        width: 120,
-        height: 120,
-        borderRadius: 60,
+        width: 140,
+        height: 140,
+        borderRadius: 70,
     },
     editAvatarButton: {
         position: "absolute",
         bottom: 0,
-        right: 0,
-        width: 36,
-        height: 36,
-        borderRadius: 18,
+        right: 4,
+        width: 40,
+        height: 40,
+        borderRadius: 20,
         backgroundColor: COLORS.primary,
         justifyContent: "center",
         alignItems: "center",
-        borderWidth: 3,
+        borderWidth: 4,
         borderColor: COLORS.white,
     },
     userName: {
-        fontSize: 24,
-        fontWeight: "600",
+        fontSize: 26,
+        fontWeight: "bold",
         color: COLORS.text,
         marginBottom: 4,
+        fontFamily: "nimbu-demo",
     },
     userEmail: {
         fontSize: 14,
         color: COLORS.textLight,
+        fontFamily: "nimbu-demo",
     },
 
     // Menu Items
@@ -92,4 +94,15 @@ export const profileStyles = StyleSheet.create({
     logoutText: {
         color: "#EF4444",
     },
+
+    // Desktop Layout
+    desktopCenterContainer: Platform.select({
+        web: {
+            alignSelf: 'center',
+            width: '100%',
+            maxWidth: 600,
+            paddingTop: 40,
+        },
+        default: {}
+    })
 });

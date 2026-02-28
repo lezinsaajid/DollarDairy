@@ -10,20 +10,19 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/colors';
 
+import useCategoryStore from '../../store/useCategoryStore';
+
 export default function FilterCategories({ visible, onClose, onApplyFilter }) {
+  const { categories } = useCategoryStore();
   const [selectedCategories, setSelectedCategories] = useState([]);
 
-  const categories = [
-    { id: 'food', label: 'Food & Dining', icon: 'restaurant-outline', color: '#FF6B6B' },
-    { id: 'transport', label: 'Transportation', icon: 'car-outline', color: '#4ECDC4' },
-    { id: 'shopping', label: 'Shopping', icon: 'cart-outline', color: '#95E1D3' },
-    { id: 'entertainment', label: 'Entertainment', icon: 'game-controller-outline', color: '#F38181' },
-    { id: 'bills', label: 'Bills & Utilities', icon: 'receipt-outline', color: '#AA96DA' },
-    { id: 'health', label: 'Health & Fitness', icon: 'fitness-outline', color: '#FCBAD3' },
-    { id: 'education', label: 'Education', icon: 'book-outline', color: '#A8E6CF' },
-    { id: 'travel', label: 'Travel', icon: 'airplane-outline', color: '#FFD93D' },
-    { id: 'other', label: 'Other', icon: 'ellipsis-horizontal-outline', color: '#C8C8C8' },
-  ];
+  // Transform real categories to match the component's expected format if necessary
+  const displayCategories = categories.map(cat => ({
+    id: cat.id,
+    label: cat.name,
+    icon: cat.type === 'expense' ? 'receipt-outline' : 'cash-outline',
+    color: cat.color || (cat.type === 'expense' ? COLORS.secondary : COLORS.primary)
+  }));
 
   const toggleCategory = (categoryId) => {
     setSelectedCategories((prev) =>
@@ -80,10 +79,10 @@ export default function FilterCategories({ visible, onClose, onApplyFilter }) {
             {/* Categories */}
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>
-                {selectedCategories.length} of {categories.length} Selected
+                {selectedCategories.length} of {displayCategories.length} Selected
               </Text>
               <View style={styles.categoriesGrid}>
-                {categories.map((category) => {
+                {displayCategories.map((category) => {
                   const isSelected = selectedCategories.includes(category.id);
                   return (
                     <TouchableOpacity

@@ -12,6 +12,7 @@ export const notificationsStyles = StyleSheet.create({
         color: COLORS.textLight,
         marginBottom: 16,
         marginTop: 8,
+        fontFamily: "nimbu-demo",
     },
     notificationItem: {
         flexDirection: "row",
@@ -44,10 +45,12 @@ export const notificationsStyles = StyleSheet.create({
         color: COLORS.text,
         lineHeight: 20,
         marginBottom: 4,
+        fontFamily: "nimbu-demo",
     },
     notificationTime: {
         fontSize: 12,
         color: COLORS.textLight,
+        fontFamily: "nimbu-demo",
     },
     payButton: {
         backgroundColor: COLORS.primary,
@@ -61,5 +64,6 @@ export const notificationsStyles = StyleSheet.create({
         fontSize: 12,
         fontWeight: "600",
         color: COLORS.white,
+        fontFamily: "nimbu-demo",
     },
 });

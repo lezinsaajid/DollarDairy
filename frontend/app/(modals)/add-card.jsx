@@ -14,12 +14,15 @@ import { COLORS } from "../../constants/colors";
 import { commonStyles } from "../../assets/styles/common.styles";
 import { addCardStyles } from "@/assets/styles/addCard.styles";
 
+import { useAddCard } from "../../api/queries";
+
 const AddCardPage = () => {
     const router = useRouter();
+    const addCardMutation = useAddCard();
     const [cardType, setCardType] = useState("debit"); // 'debit' or 'credit'
     const [cardNumbers, setCardNumbers] = useState(["", "", "", ""]);
     const [selectedMonth, setSelectedMonth] = useState("06");
-    const [selectedYear, setSelectedYear] = useState("2018");
+    const [selectedYear, setSelectedYear] = useState("2026");
     const [cardholderName, setCardholderName] = useState("");
 
     const handleCardNumberChange = (index, value) => {
@@ -31,34 +34,29 @@ const AddCardPage = () => {
     };
 
     const handleSubmit = async () => {
+        if (!cardholderName || cardNumbers.some(n => n.length < 4)) {
+            alert("Please fill in all card details correctly.");
+            return;
+        }
+
         try {
             const fullCardNumber = cardNumbers.join(" ");
-            
-            // TODO: Replace with your backend API endpoint
-            // const response = await fetch('YOUR_API_ENDPOINT/add-card', {
-            //     method: 'POST',
-            //     headers: { 'Content-Type': 'application/json' },
-            //     body: JSON.stringify({
-            //         cardType,
-            //         cardNumber: fullCardNumber,
-            //         expiryMonth: selectedMonth,
-            //         expiryYear: selectedYear,
-            //         cardholderName,
-            //     }),
-            // });
 
-            console.log("Card added:", {
+            await addCardMutation.mutateAsync({
                 cardType,
                 cardNumber: fullCardNumber,
                 expiryMonth: selectedMonth,
                 expiryYear: selectedYear,
                 cardholderName,
+                color: cardType === 'debit' ? '#667eea' : '#764ba2', // Default colors
+                type: 'VISA' // Mocking type for now or could be inferred
             });
 
             // Navigate back
             router.back();
         } catch (error) {
             console.error("Error adding card:", error);
+            alert("Failed to add card. Please try again.");
         }
     };
 

@@ -11,56 +11,44 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import { useUser } from "@clerk/clerk-expo";
 import { COLORS } from "../../constants/colors";
 import { commonStyles } from "../../assets/styles/common.styles";
 import { editProfileStyles } from "../../assets/styles/editProfile.styles";
 
 const EditProfilePage = () => {
     const router = useRouter();
+    const { user, isLoaded } = useUser();
     const [isLoading, setIsLoading] = useState(false);
-    
-    // Form state
-    const [firstName, setFirstName] = useState("Leslie");
-    const [lastName, setLastName] = useState("Alexander");
-    const [email, setEmail] = useState("reallegger@gmail.com");
-    const [phoneNumber, setPhoneNumber] = useState("9876543210");
-    const [dateOfBirth, setDateOfBirth] = useState("04/06/2000");
-    const [country, setCountry] = useState("Indonesia");
 
-    // Profile completion percentage
-    const profileCompletion = 70;
+    // Form state initialized with Clerk data
+    const [firstName, setFirstName] = useState(user?.firstName || "");
+    const [lastName, setLastName] = useState(user?.lastName || "");
+    const [email, setEmail] = useState(user?.primaryEmailAddress?.emailAddress || "");
+    const [phoneNumber, setPhoneNumber] = useState(user?.primaryPhoneNumber?.phoneNumber || "");
+    const dateOfBirth = user?.unsafeMetadata?.dateOfBirth || "01/01/1995";
+    const country = user?.unsafeMetadata?.country || "United States";
+
+    // Profile completion percentage (mocked for now)
+    const profileCompletion = 85;
 
     const handleSaveChanges = async () => {
+        if (!isLoaded || !user) return;
+
         setIsLoading(true);
         try {
-            // TODO: Replace with your backend API endpoint
-            // const response = await fetch('YOUR_API_ENDPOINT/update-profile', {
-            //     method: 'PUT',
-            //     headers: { 'Content-Type': 'application/json' },
-            //     body: JSON.stringify({
-            //         firstName,
-            //         lastName,
-            //         email,
-            //         phoneNumber,
-            //         dateOfBirth,
-            //         country,
-            //     }),
-            // });
-
-            console.log("Profile updated:", {
+            await user.update({
                 firstName,
                 lastName,
-                email,
-                phoneNumber,
-                dateOfBirth,
-                country,
             });
+
+            console.log("Clerk profile updated:", { firstName, lastName });
 
             Alert.alert("Success", "Profile updated successfully!");
             router.back();
         } catch (error) {
             console.error("Error updating profile:", error);
-            Alert.alert("Error", "Failed to update profile. Please try again.");
+            Alert.alert("Error", error.message || "Failed to update profile. Please try again.");
         } finally {
             setIsLoading(false);
         }

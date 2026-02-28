@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
     View,
     Text,
@@ -11,27 +11,65 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useAuth, useUser } from "@clerk/clerk-expo";
+import * as ImagePicker from "expo-image-picker";
 import { COLORS } from "../../constants/colors";
 import { commonStyles } from "../../assets/styles/common.styles";
 import { profileStyles } from "../../assets/styles/profile.styles";
 import QuickActions from "../../components/QuickActions";
-import AvatarPicker from "../../components/AvatarPicker";
+import InfoModal from "../../components/InfoModal";
+import { useResponsive } from "../../hooks/useResponsive";
+import { useCards } from "../../api/queries"; // In case we want to show card count
 
 const ProfilePage = () => {
     const router = useRouter();
     const { signOut, getToken } = useAuth();
     const { user, isLoaded: userLoaded } = useUser();
     const [showQuickActions, setShowQuickActions] = useState(false);
-    const [showAvatarPicker, setShowAvatarPicker] = useState(false);
-    const [avatarPosition, setAvatarPosition] = useState(null);
-    const [avatar, setAvatar] = useState(null);
-    const [profileData, setProfileData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const avatarRef = useRef(null);
+    const [infoModal, setInfoModal] = useState({ visible: false, title: "", type: "", data: null });
 
-   
-    const API_BASE_URL = "https://dollardairy-uags.onrender.com"; 
+    // Menu Item Actions
+    const handleMenuPress = (item) => {
+        if (item.onPress) {
+            item.onPress();
+            return;
+        }
+
+        switch (item.id) {
+            case 1: // Account Info
+                setInfoModal({
+                    visible: true,
+                    title: "Account Information",
+                    type: "account",
+                    data: {
+                        fullName: user?.fullName,
+                        email: user?.primaryEmailAddress?.emailAddress,
+                        createdAt: user?.createdAt,
+                        id: user?.id
+                    }
+                });
+                break;
+            case 2: // Security Code
+                setInfoModal({
+                    visible: true,
+                    title: "Security Verification",
+                    type: "security",
+                    data: {}
+                });
+                break;
+            case 3: // Privacy
+                setInfoModal({
+                    visible: true,
+                    title: "Privacy Policy",
+                    type: "privacy",
+                    data: {}
+                });
+                break;
+        }
+    };
+
+
 
     // Quick Actions for Profile Page
     const quickActions = [
@@ -80,7 +118,6 @@ const ProfilePage = () => {
             label: "Account Info",
             color: COLORS.primary,
             backgroundColor: COLORS.primary + "15",
-            onPress: () => console.log("Account Info"),
         },
         {
             id: 2,
@@ -88,7 +125,6 @@ const ProfilePage = () => {
             label: "Security Code",
             color: "#10B981",
             backgroundColor: "#10B98115",
-            onPress: () => console.log("Security Code"),
         },
         {
             id: 3,
@@ -96,7 +132,6 @@ const ProfilePage = () => {
             label: "Privacy Policy",
             color: COLORS.primary,
             backgroundColor: COLORS.primary + "15",
-            onPress: () => console.log("Privacy Policy"),
         },
         {
             id: 4,
@@ -108,93 +143,83 @@ const ProfilePage = () => {
         },
     ];
 
-    const fetchProfileData = async () => {
-        if (!userLoaded || !user) {
+    useEffect(() => {
+        if (userLoaded) {
             setLoading(false);
-            return;
         }
+    }, [userLoaded]);
 
-        try {
+    const pickImage = async () => {
+        const result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            allowsEditing: true,
+            aspect: [1, 1],
+            quality: 0.5,
+            base64: true,
+        });
+
+        if (!result.canceled && result.assets[0].base64) {
             setLoading(true);
-            setError(null);
-            const token = await getToken();
-            
-            const response = await fetch(`${API_BASE_URL}/profile`, {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json',
-                },
-            });
+            try {
+                // Clerk's setProfileImage expects a base64 string or a file
+                // On web/mobile, base64 is often easier for Clerk's SDK
+                await user.setProfileImage({
+                    file: `data:image/jpeg;base64,${result.assets[0].base64}`,
+                });
 
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                Alert.alert('Success', 'Profile picture updated!');
+            } catch (err) {
+                console.error('Avatar update error:', err);
+                Alert.alert('Error', 'Failed to update profile picture.');
+            } finally {
+                setLoading(false);
             }
-
-            const data = await response.json();
-            setProfileData(data);
-            
-            // Set avatar if available from backend
-            if (data.avatar) {
-                setAvatar({ uri: data.avatar });
-            }
-        } catch (err) {
-            console.error('Profile fetch error:', err);
-            setError(err.message);
-            Alert.alert('Error', 'Failed to load profile data. Please try again.');
-        } finally {
-            setLoading(false);
         }
     };
-
-    useEffect(() => {
-        fetchProfileData();
-    }, [userLoaded, user]);
 
     const handleOpenAvatarPicker = () => {
-        if (avatarRef.current) {
-            avatarRef.current.measure((x, y, width, height, pageX, pageY) => {
-                setAvatarPosition({ x: pageX, y: pageY });
-                setShowAvatarPicker(true);
-            });
-        } else {
-            setShowAvatarPicker(true);
-        }
+        // Instead of opening a custom AvatarPicker, we directly call pickImage
+        // This assumes AvatarPicker component is no longer needed or its functionality is replaced by ImagePicker
+        pickImage();
+        // If AvatarPicker was meant to offer more options (e.g., predefined avatars),
+        // its logic would need to be integrated here or pickImage would be one of its options.
+        // For now, we're simplifying to just picking from library.
     };
 
-    const handleSelectAvatar = async (selectedAvatar) => {
-        setAvatar(selectedAvatar);
-        
-        // Upload to backend
-        try {
-            const token = await getToken();
-            const formData = new FormData();
-            if (selectedAvatar.uri.startsWith('file://') || selectedAvatar.uri.startsWith('content://')) {
-                formData.append('avatar', {
-                    uri: selectedAvatar.uri,
-                    type: 'image/jpeg',
-                    name: 'avatar.jpg',
-                });
-            } else {
-                formData.append('avatarUrl', selectedAvatar.uri);
-            }
+    // handleSelectAvatar is no longer needed as pickImage directly handles the selection and upload via Clerk.
+    // const handleSelectAvatar = async (selectedAvatar) => {
+    //     setAvatar(selectedAvatar);
 
-            const response = await fetch(`${API_BASE_URL}/profile/avatar`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                },
-                body: formData,
-            });
+    //     // Upload to backend
+    //     try {
+    //         const token = await getToken();
+    //         const formData = new FormData();
+    //         if (selectedAvatar.uri.startsWith('file://') || selectedAvatar.uri.startsWith('content://')) {
+    //             formData.append('avatar', {
+    //                 uri: selectedAvatar.uri,
+    //                 type: 'image/jpeg',
+    //                 name: 'avatar.jpg',
+    //             });
+    //         } else {
+    //             formData.append('avatarUrl', selectedAvatar.uri);
+    //         }
 
-            if (!response.ok) {
-                throw new Error('Upload failed');
-            }
-        } catch (err) {
-            console.error('Avatar upload error:', err);
-            Alert.alert('Error', 'Failed to update avatar.');
-        }
-    };
+    //         const response = await fetch(`${API_BASE_URL}/profile/avatar`, {
+    //             method: 'POST',
+    //             headers: {
+    //                 'Authorization': `Bearer ${token}`,
+    //             },
+    //             body: formData,
+    //         });
+
+    //         if (!response.ok) {
+    //             throw new Error('Upload failed');
+    //         }
+    //     } catch (err) {
+    //         console.error('Avatar upload error:', err);
+    //         Alert.alert('Error', 'Failed to update avatar.');
+    //     }
+    // };
 
     const handleLogout = async () => {
         try {
@@ -205,6 +230,10 @@ const ProfilePage = () => {
         }
     };
 
+    const displayName = user?.fullName || 'User';
+    const displayEmail = user?.primaryEmailAddress?.emailAddress || '';
+    const { isDesktop } = useResponsive();
+
     if (loading) {
         return (
             <View style={{ flex: 1, backgroundColor: COLORS.background, justifyContent: 'center', alignItems: 'center' }}>
@@ -213,50 +242,51 @@ const ProfilePage = () => {
         );
     }
 
-    const displayName = profileData?.name || user?.fullName || 'Leslie Alexander';
-    const displayEmail = profileData?.email || user?.primaryEmailAddress?.emailAddress || 'leslie@gmail.com';
-
     return (
-        <>
-            <View style={{ flex: 1, backgroundColor: COLORS.background }}>
-                {/* Header */}
-                <View style={commonStyles.header}>
-                    <TouchableOpacity
-                        style={commonStyles.headerIcon}
-                        onPress={() => setShowQuickActions(true)}
-                    >
-                        <Ionicons name="menu" size={24} color={COLORS.text} />
-                    </TouchableOpacity>
-                    <Text
-                        style={{
-                            fontFamily: "NimbusReg",
-                            fontSize: 28,
-                            fontWeight: "bold",
-                            color: COLORS.text,
-                            textAlign: "center",
-                        }}
-                    >
-                        Profile
-                    </Text>
-                    <TouchableOpacity
-                        style={commonStyles.headerIcon}
-                        onPress={() => router.push("/(modals)/edit-profile")}
-                    >
-                        <Ionicons name="create" size={24} color={COLORS.text} />
-                    </TouchableOpacity>
-                </View>
+        <View style={{ flex: 1, backgroundColor: COLORS.background }}>
+            {/* Header */}
+            {/* Header Top Row */}
+            <View style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "center",
+                paddingHorizontal: 20,
+                paddingTop: 10,
+                marginBottom: 20,
+            }}>
+                <TouchableOpacity
+                    style={commonStyles.headerIcon}
+                    onPress={() => setShowQuickActions(true)}
+                >
+                    <Ionicons name="apps-outline" size={24} color={COLORS.text} />
+                </TouchableOpacity>
 
-                <ScrollView showsVerticalScrollIndicator={false}>
+                <Text style={{
+                    fontFamily: "nimbu-demo",
+                    fontSize: 18,
+                    fontWeight: "600",
+                    color: COLORS.text,
+                }}>Profile</Text>
+
+                <TouchableOpacity style={commonStyles.headerIcon}>
+                    <Ionicons name="settings-outline" size={24} color={COLORS.text} />
+                </TouchableOpacity>
+            </View>
+
+            <ScrollView
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={isDesktop && commonStyles.webContainer}
+            >
+                <View style={isDesktop && profileStyles.desktopCenterContainer}>
                     {/* Profile Header */}
                     <View style={profileStyles.profileHeader}>
                         <View
-                            ref={avatarRef}
                             style={profileStyles.avatarContainer}
                         >
                             <View style={profileStyles.avatar}>
-                                {avatar?.uri ? (
+                                {user?.imageUrl ? (
                                     <Image
-                                        source={{ uri: avatar.uri }}
+                                        source={{ uri: user.imageUrl }}
                                         style={profileStyles.avatarImage}
                                     />
                                 ) : (
@@ -276,20 +306,15 @@ const ProfilePage = () => {
                         </View>
                         <Text style={profileStyles.userName}>{displayName}</Text>
                         <Text style={profileStyles.userEmail}>{displayEmail}</Text>
-                        {error && (
-                            <Text style={{ color: '#EF4444', textAlign: 'center', marginTop: 10 }}>
-                                {error}
-                            </Text>
-                        )}
                     </View>
 
                     {/* Menu Items */}
-                    <View style={profileStyles.menuContainer}>
+                    <View style={[profileStyles.menuContainer, isDesktop && { backgroundColor: COLORS.card, borderRadius: 20, padding: 8, marginHorizontal: 20 }]}>
                         {menuItems.map((item) => (
                             <TouchableOpacity
                                 key={item.id}
                                 style={profileStyles.menuItem}
-                                onPress={item.onPress}
+                                onPress={() => handleMenuPress(item)}
                                 activeOpacity={0.7}
                             >
                                 <View
@@ -339,8 +364,8 @@ const ProfilePage = () => {
                             />
                         </TouchableOpacity>
                     </View>
-                </ScrollView>
-            </View>
+                </View>
+            </ScrollView>
 
             {/* Quick Actions Side Drawer */}
             <QuickActions
@@ -349,14 +374,14 @@ const ProfilePage = () => {
                 actions={quickActions}
             />
 
-            {/* Avatar Picker - Small Popup Menu */}
-            <AvatarPicker
-                visible={showAvatarPicker}
-                onClose={() => setShowAvatarPicker(false)}
-                onSelectAvatar={handleSelectAvatar}
-                avatarPosition={avatarPosition}
+            <InfoModal
+                visible={infoModal.visible}
+                onClose={() => setInfoModal({ ...infoModal, visible: false })}
+                title={infoModal.title}
+                type={infoModal.type}
+                data={infoModal.data}
             />
-        </>
+        </View>
     );
 };
 

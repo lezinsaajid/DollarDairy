@@ -90,13 +90,13 @@ const AddPage = () => {
         fetchLastAdded();
     }, []);
 
-   const handleAddIncome = () => {
-    router.push("/(modals)/add-income");
-};
+    const handleAddIncome = () => {
+        router.push("/(modals)/add-income");
+    };
 
-const handleAddExpense = () => {
-    router.push("/(modals)/add-expense");
-};
+    const handleAddExpense = () => {
+        router.push("/(modals)/add-expense");
+    };
 
 
     return (
@@ -108,25 +108,30 @@ const handleAddExpense = () => {
             }
         >
             {/* Header */}
-            <View style={commonStyles.header}>
+            {/* Header Top Row */}
+            <View style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "center",
+                paddingHorizontal: 20,
+                paddingTop: 10,
+                marginBottom: 20,
+            }}>
                 <TouchableOpacity
                     style={commonStyles.headerIcon}
                     onPress={() => router.back()}
                 >
                     <Ionicons name="arrow-back" size={24} color={COLORS.text} />
                 </TouchableOpacity>
-                <Text
-                                        style={{
-                                            fontFamily: "NimbusReg",
-                                            fontSize: 28,
-                                            fontWeight: "bold",
-                                            color: COLORS.text,
-                                            textAlign: "center",
-                                        }}
-                                    >
-                                       Add
-                                    </Text>
-                <View style={{ width: 24 }} />
+
+                <Text style={{
+                    fontFamily: "nimbu-demo",
+                    fontSize: 18,
+                    fontWeight: "600",
+                    color: COLORS.text,
+                }}>Add</Text>
+
+                <View style={{ width: 32 }} />
             </View>
 
             {/* Add Options */}

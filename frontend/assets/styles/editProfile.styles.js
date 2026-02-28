@@ -12,11 +12,13 @@ export const editProfileStyles = StyleSheet.create({
         fontWeight: "600",
         color: COLORS.text,
         marginBottom: 8,
+        fontFamily: "nimbu-demo",
     },
     progressSubtext: {
         fontSize: 12,
         color: COLORS.textLight,
         marginBottom: 12,
+        fontFamily: "nimbu-demo",
     },
     progressBar: {
         height: 6,
@@ -79,6 +81,7 @@ export const editProfileStyles = StyleSheet.create({
         fontWeight: "600",
         color: COLORS.textLight,
         marginBottom: 8,
+        fontFamily: "nimbu-demo",
     },
     inputField: {
         backgroundColor: COLORS.card,
@@ -88,6 +91,7 @@ export const editProfileStyles = StyleSheet.create({
         color: COLORS.text,
         borderWidth: 1,
         borderColor: COLORS.border,
+        fontFamily: "nimbu-demo",
     },
     disabledInput: {
         backgroundColor: COLORS.background,
@@ -106,5 +110,6 @@ export const editProfileStyles = StyleSheet.create({
         fontSize: 16,
         fontWeight: "600",
         color: COLORS.white,
+        fontFamily: "nimbu-demo",
     },
 });

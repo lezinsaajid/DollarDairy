@@ -3,9 +3,11 @@ import { Redirect, Tabs } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { View, StyleSheet, TouchableOpacity, Platform } from "react-native";
 import { COLORS } from "../../constants/colors";
+import { useResponsive } from "../../hooks/useResponsive";
 
 const TabsLayout = () => {
     const { isSignedIn, isLoaded } = useAuth();
+    const { isDesktop } = useResponsive();
 
     if (!isLoaded) return null;
 
@@ -22,7 +24,8 @@ const TabsLayout = () => {
                     backgroundColor: COLORS.card,
                     borderTopColor: COLORS.border,
                     borderTopWidth: 1,
-                    height: Platform.OS === "ios" ? 85 : 70,
+                    height: isDesktop ? 0 : (Platform.OS === "ios" ? 85 : 70),
+                    display: isDesktop ? 'none' : 'flex',
                     paddingBottom: Platform.OS === "ios" ? 25 : 10,
                     paddingTop: 10,
                     elevation: 8,
@@ -137,6 +140,7 @@ const styles = StyleSheet.create({
         elevation: 8,
         borderWidth: 5,
         borderColor: COLORS.background,
+        overflow: 'hidden'
     },
 });
 

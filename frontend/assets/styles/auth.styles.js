@@ -32,12 +32,14 @@ export const authStyles = StyleSheet.create({
         color: COLORS.text,
         textAlign: "center",
         marginBottom: 40,
+        fontFamily: "nimbu-demo",
     },
     subtitle: {
         fontSize: 16,
         color: COLORS.textLight,
         textAlign: "center",
         marginBottom: 30,
+        fontFamily: "nimbu-demo",
     },
     formContainer: {
         flex: 1,
@@ -55,6 +57,7 @@ export const authStyles = StyleSheet.create({
         borderRadius: 12,
         borderWidth: 1,
         borderColor: COLORS.border,
+        fontFamily: "nimbu-demo",
     },
     eyeButton: {
         position: "absolute",
@@ -77,6 +80,7 @@ export const authStyles = StyleSheet.create({
         fontWeight: "600",
         color: COLORS.white,
         textAlign: "center",
+        fontFamily: "nimbu-demo",
     },
     linkContainer: {
         alignItems: "center",
@@ -85,55 +89,58 @@ export const authStyles = StyleSheet.create({
     linkText: {
         fontSize: 16,
         color: COLORS.textLight,
+        fontFamily: "nimbu-demo",
     },
     link: {
         color: COLORS.primary,
         fontWeight: "600",
+        fontFamily: "nimbu-demo",
     },
 
-socialButtonsRow: {
-    flexDirection: 'row',
-    marginBottom: 16,
-    gap: 8,
-},
+    socialButtonsRow: {
+        flexDirection: 'row',
+        marginBottom: 16,
+        gap: 8,
+    },
 
-socialButton: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 14,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: 10,
-    marginHorizontal: 4,
-    backgroundColor: COLORS.background,
-},
+    socialButton: {
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 14,
+        borderWidth: 1,
+        borderColor: COLORS.border,
+        borderRadius: 10,
+        marginHorizontal: 4,
+        backgroundColor: COLORS.background,
+    },
 
-dividerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 20,
-},
-dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: COLORS.border,
-},
-dividerText: {
-    marginHorizontal: 8,
-    color: COLORS.textLight,
-    fontSize: 16,
-},
-cardContainer: {
-    borderRadius: 16,
-    backgroundColor: COLORS.background,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.13,
-    shadowRadius: 6,
-    padding: 28,
-},
+    dividerRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 20,
+    },
+    dividerLine: {
+        flex: 1,
+        height: 1,
+        backgroundColor: COLORS.border,
+    },
+    dividerText: {
+        marginHorizontal: 8,
+        color: COLORS.textLight,
+        fontSize: 16,
+        fontFamily: "nimbu-demo",
+    },
+    cardContainer: {
+        borderRadius: 16,
+        backgroundColor: COLORS.background,
+        elevation: 2,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.13,
+        shadowRadius: 6,
+        padding: 28,
+    },
 
 });

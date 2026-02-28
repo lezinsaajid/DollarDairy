@@ -15,12 +15,14 @@ import { commonStyles } from "../../assets/styles/common.styles";
 import { myCardsStyles } from "../../assets/styles/mycards.styles";
 import QuickActions from "../../components/QuickActions";
 
+import { useCards } from "../../api/queries";
+
 const MyCardsPage = () => {
     const router = useRouter();
-    const [isLoading, setIsLoading] = useState(false);
-    const [refreshing, setRefreshing] = useState(false);
     const [showQuickActions, setShowQuickActions] = useState(false);
-    const [cards, setCards] = useState([]);
+
+    // Fetch cards from backend using React Query
+    const { data: cards = [], isLoading, refetch } = useCards();
 
     // Quick Actions for MyCards Page
     const quickActions = [
@@ -62,52 +64,9 @@ const MyCardsPage = () => {
         },
     ];
 
-    // Fetch cards from backend
-    const fetchCards = async () => {
-        setIsLoading(true);
-        try {
-            setCards([
-                {
-                    id: 1,
-                    type: "VISA",
-                    balance: 2310.0,
-                    cardNumber: "4836 7489 4562 1258",
-                    cardHolder: "Leslie Alexander",
-                    gradientColors: ["#FF6B9D", "#C06C84"],
-                },
-                {
-                    id: 2,
-                    type: "VISA",
-                    balance: 3257.0,
-                    cardNumber: "5247 5687 3025 5697",
-                    cardHolder: "Leslie Alexander",
-                    gradientColors: ["#667eea", "#764ba2"],
-                },
-                {
-                    id: 3,
-                    type: "VISA",
-                    balance: 1962.0,
-                    cardNumber: "8475 2358 2259 2053",
-                    cardHolder: "Leslie Alexander",
-                    gradientColors: ["#FFA751", "#FFE259"],
-                },
-            ]);
-        } catch (error) {
-            console.error("Error fetching cards:", error);
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
     const onRefresh = async () => {
-        setRefreshing(true);
-        await fetchCards();
-        setRefreshing(false);
+        await refetch();
     };
-
-    useEffect(() => {
-        fetchCards();
-    }, []);
 
     const handleAddCard = () => {
         router.push("/(modals)/add-card");
@@ -130,31 +89,34 @@ const MyCardsPage = () => {
                         style={commonStyles.headerIcon}
                         onPress={() => setShowQuickActions(true)}
                     >
-                        <Ionicons name="menu" size={24} color={COLORS.text} />
+                        <Ionicons name="menu" size={28} color={COLORS.text} />
                     </TouchableOpacity>
-                    <Text
-                        style={{
-                            fontFamily: "NimbusReg",
-                            fontSize: 28,
-                            fontWeight: "bold",
-                            color: COLORS.text,
-                            textAlign: "center",
-                        }}
-                    >
-                        My Cards
-                    </Text>
+
+                    <Text style={{
+                        fontFamily: "nimbu-demo",
+                        fontSize: 28,
+                        fontWeight: "bold",
+                        color: COLORS.text,
+                        flex: 1,
+                        textAlign: "center",
+                    }}>My Cards</Text>
+
                     <TouchableOpacity
                         style={commonStyles.headerIcon}
-                        onPress={handleAddCard}
+                        onPress={() => router.push("/(modals)/add-card")}
                     >
-                        <Ionicons name="add" size={24} color={COLORS.text} />
+                        <Ionicons
+                            name="add-circle"
+                            size={28}
+                            color={COLORS.secondary}
+                        />
                     </TouchableOpacity>
                 </View>
 
                 <ScrollView
                     showsVerticalScrollIndicator={false}
                     refreshControl={
-                        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+                        <RefreshControl refreshing={isLoading} onRefresh={onRefresh} />
                     }
                     contentContainerStyle={myCardsStyles.cardsContainer}
                 >

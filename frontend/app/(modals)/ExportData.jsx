@@ -153,7 +153,7 @@ export default function ExportData({ visible, onClose, onExport }) {
             <View style={styles.infoBox}>
               <Ionicons name="information-circle-outline" size={20} color={COLORS.primary} />
               <Text style={styles.infoText}>
-                Your data will be exported and saved to your device's downloads folder.
+                Your data will be exported and saved to your device&apos;s downloads folder.
               </Text>
             </View>
           </ScrollView>

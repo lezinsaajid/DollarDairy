@@ -9,7 +9,7 @@ export const myCardsStyles = StyleSheet.create({
         paddingHorizontal: 20,
         paddingBottom: 120,
     },
-    
+
     // Credit Card
     creditCard: {
         width: width - 40,
@@ -24,7 +24,7 @@ export const myCardsStyles = StyleSheet.create({
         shadowOpacity: 0.3,
         shadowRadius: 8,
     },
-    
+
     // Card Header
     cardHeader: {
         flexDirection: "row",
@@ -36,6 +36,7 @@ export const myCardsStyles = StyleSheet.create({
         fontWeight: "bold",
         color: COLORS.white,
         letterSpacing: 2,
+        fontFamily: "nimbu-demo",
     },
     cardBalance: {
         alignItems: "flex-end",
@@ -45,13 +46,15 @@ export const myCardsStyles = StyleSheet.create({
         color: COLORS.white,
         opacity: 0.9,
         marginBottom: 4,
+        fontFamily: "nimbu-demo",
     },
     balanceAmount: {
         fontSize: 24,
         fontWeight: "bold",
         color: COLORS.white,
+        fontFamily: "nimbu-demo",
     },
-    
+
     // Card Number
     cardNumber: {
         fontSize: 18,
@@ -59,15 +62,17 @@ export const myCardsStyles = StyleSheet.create({
         letterSpacing: 2,
         fontWeight: "500",
         marginBottom: 8,
+        fontFamily: "nimbu-demo",
     },
-    
+
     // Card Holder
     cardHolder: {
         fontSize: 14,
         color: COLORS.white,
         opacity: 0.9,
+        fontFamily: "nimbu-demo",
     },
-    
+
     // Add Card Button
     addCardButton: {
         width: width - 40,
@@ -93,5 +98,6 @@ export const myCardsStyles = StyleSheet.create({
         fontSize: 14,
         color: COLORS.textLight,
         marginTop: 8,
+        fontFamily: "nimbu-demo",
     },
 });

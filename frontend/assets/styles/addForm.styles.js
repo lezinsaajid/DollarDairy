@@ -29,6 +29,7 @@ export const addFormStyles = StyleSheet.create({
         fontSize: 16,
         fontWeight: "600",
         color: COLORS.text,
+        fontFamily: "nimbu-demo",
     },
     calendarWeekDays: {
         flexDirection: "row",
@@ -41,6 +42,7 @@ export const addFormStyles = StyleSheet.create({
         fontSize: 12,
         color: COLORS.textLight,
         fontWeight: "500",
+        fontFamily: "nimbu-demo",
     },
     calendarDays: {
         flexDirection: "row",
@@ -58,6 +60,7 @@ export const addFormStyles = StyleSheet.create({
     dayText: {
         fontSize: 14,
         color: COLORS.text,
+        fontFamily: "nimbu-demo",
     },
     selectedDay: {
         backgroundColor: COLORS.primary,
@@ -65,6 +68,7 @@ export const addFormStyles = StyleSheet.create({
     selectedDayText: {
         color: COLORS.white,
         fontWeight: "600",
+        fontFamily: "nimbu-demo",
     },
 
     // Form
@@ -80,6 +84,7 @@ export const addFormStyles = StyleSheet.create({
         fontWeight: "600",
         color: COLORS.text,
         marginBottom: 12,
+        fontFamily: "nimbu-demo",
     },
     textInput: {
         backgroundColor: COLORS.card,
@@ -89,6 +94,7 @@ export const addFormStyles = StyleSheet.create({
         color: COLORS.text,
         borderWidth: 1,
         borderColor: COLORS.border,
+        fontFamily: "nimbu-demo",
     },
     amountInput: {
         backgroundColor: COLORS.card,
@@ -105,6 +111,7 @@ export const addFormStyles = StyleSheet.create({
         fontSize: 16,
         color: COLORS.textLight,
         marginRight: 8,
+        fontFamily: "nimbu-demo",
     },
 
     // Category
@@ -133,6 +140,7 @@ export const addFormStyles = StyleSheet.create({
         fontSize: 14,
         fontWeight: "500",
         color: COLORS.text,
+        fontFamily: "nimbu-demo",
     },
     categoryTextActive: {
         color: COLORS.white,
@@ -164,5 +172,6 @@ export const addFormStyles = StyleSheet.create({
         fontSize: 16,
         fontWeight: "600",
         color: COLORS.white,
+        fontFamily: "nimbu-demo",
     },
 });

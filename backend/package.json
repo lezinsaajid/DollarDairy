@@ -14,12 +14,17 @@
     "@clerk/clerk-expo": "^2.17.1",
     "@clerk/clerk-sdk-node": "^4.13.23",
     "@neondatabase/serverless": "github:neondatabase/serverless",
+    "axios": "^1.13.6",
     "cors": "^2.8.5",
     "cron": "^4.3.3",
     "dotenv": "^17.2.3",
     "drizzle-orm": "^0.44.7",
     "express": "^5.1.0",
-    "pg": "^8.16.3"
+    "luxon": "^3.7.2",
+    "multer": "^2.1.0",
+    "pdfkit": "^0.17.2",
+    "pg": "^8.16.3",
+    "tesseract.js": "^7.0.0"
   },
   "devDependencies": {
     "drizzle-kit": "^0.31.5",

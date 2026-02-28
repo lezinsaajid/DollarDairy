@@ -31,72 +31,39 @@ const darkenColor = (color, percent = 20) => {
     );
 };
 
+import { useTransactions } from "../../api/queries";
+import { useResponsive } from "../../hooks/useResponsive";
+
 const HomePage = () => {
     const router = useRouter();
     const { user } = useUser();
+    const { isDesktop } = useResponsive();
     const [refreshing, setRefreshing] = useState(false);
     const [showQuickActions, setShowQuickActions] = useState(false);
 
-    const { transactions, stats, isLoading, fetchTransactions } = useTransactionStore();
+    const { data: transactions = [], isLoading, refetch } = useTransactions();
 
-    // Quick Actions for Home Page
-    const quickActions = [
-        {
-            icon: "add-circle",
-            label: "Add Income",
-            color: COLORS.primary,
-            onPress: () => router.push("/(modals)/add-income"),
-        },
-        {
-            icon: "remove-circle",
-            label: "Add Expense",
-            color: COLORS.secondary,
-            onPress: () => router.push("/(modals)/add-expense"),
-        },
-        {
-            icon: "stats-chart",
-            label: "View Reports",
-            color: "#10B981",
-            onPress: () => router.push("/overview"),
-        },
-        {
-            icon: "card",
-            label: "My Cards",
-            color: "#8B5CF6",
-            onPress: () => router.push("/mycards"),
-        },
-        {
-            icon: "settings",
-            label: "Settings",
-            color: "#F59E0B",
-            onPress: () => router.push("/(modals)/settings"),
-        },
-        {
-            icon: "notifications",
-            label: "Notifications",
-            color: "#EF4444",
-            onPress: () => router.push("/(modals)/notifications"),
-        },
-    ];
+    // ... existing stats calculation ...
+    const stats = transactions.reduce((acc, t) => {
+        const amount = parseFloat(t.amount);
+        if (t.type === 'income') acc.income += amount;
+        else acc.expenses += amount;
+        acc.totalBalance = acc.income - acc.expenses;
+        return acc;
+    }, { totalBalance: 0, income: 0, expenses: 0 });
 
     const onRefresh = async () => {
         setRefreshing(true);
-        if (user) {
-            await fetchTransactions(user.id);
-        }
+        await refetch();
         setRefreshing(false);
     };
 
-    useEffect(() => {
-        if (user) {
-            fetchTransactions(user.id);
-        }
-    }, [user]);
-
-    // Navigation handlers
-    const handleNavigateToNotifications = () => {
-        router.push("/(modals)/notifications");
-    };
+    const quickActions = [
+        { icon: "add-circle", label: "Add Expense", color: COLORS.secondary, onPress: () => router.push("/(modals)/add-expense") },
+        { icon: "add-circle", label: "Add Income", color: COLORS.primary, onPress: () => router.push("/(modals)/add-income") },
+        { icon: "calendar", label: "Overview", color: "#10B981", onPress: () => router.push("/(tabs)/overview") },
+        { icon: "options", label: "Settings", color: "#8B5CF6", onPress: () => router.push("/(modals)/settings") },
+    ];
 
     if (isLoading && transactions.length === 0) {
         return (
@@ -106,209 +73,200 @@ const HomePage = () => {
         );
     }
 
-    return (
-        <>
-            <ScrollView
-                style={commonStyles.container}
-                showsVerticalScrollIndicator={false}
-                refreshControl={
-                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-                }
-            >
-                {/* Header */}
-                <View style={commonStyles.header}>
-                    <TouchableOpacity
-                        style={commonStyles.headerIcon}
-                        onPress={() => setShowQuickActions(true)}
-                    >
-                        <Ionicons name="menu" size={24} color={COLORS.text} />
-                    </TouchableOpacity>
-                    <Text style={{
-                        fontFamily: "NimbusReg",
-                        fontSize: 28,
-                        fontWeight: "bold",
-                        color: COLORS.text,
-                        textAlign: "center",
-                    }}>Home</Text>
-                    <View style={{ width: 24 }} />
-                </View >
-
-                {/* Balance Card */}
-                <LinearGradient
-                    colors={[COLORS.primary, darkenColor(COLORS.primary, 20)]}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                    style={homeStyles.balanceCard}
-                >
-                    <View style={homeStyles.balanceHeader}>
-                        <View style={homeStyles.balanceLabelContainer}>
-                            <Text style={homeStyles.balanceLabel}>Total Balance</Text>
-                            <Ionicons name="chevron-down" size={16} color={COLORS.white} />
-                        </View>
-                        <TouchableOpacity>
-                            <Ionicons
-                                name="ellipsis-horizontal"
-                                size={24}
-                                color={COLORS.white}
-                            />
-                        </TouchableOpacity>
-                    </View>
-
-                    <Text style={homeStyles.balanceAmount}>
-                        ${stats.totalBalance.toFixed(2)}
-                    </Text>
-
-                    <View style={homeStyles.balanceDetails}>
-                        <View style={homeStyles.balanceItem}>
-                            <View style={homeStyles.iconContainer}>
-                                <Ionicons name="arrow-down" size={16} color={COLORS.white} />
-                            </View>
-                            <View>
-                                <Text style={homeStyles.balanceItemLabel}>Income</Text>
-                                <Text style={homeStyles.balanceItemAmount}>
-                                    ${stats.income.toFixed(2)}
-                                </Text>
-                            </View>
-                        </View>
-
-                        <View style={homeStyles.balanceItem}>
-                            <View style={homeStyles.iconContainer}>
-                                <Ionicons name="arrow-up" size={16} color={COLORS.white} />
-                            </View>
-                            <View>
-                                <Text style={homeStyles.balanceItemLabel}>Expenses</Text>
-                                <Text style={homeStyles.balanceItemAmount}>
-                                    ${stats.expenses.toFixed(2)}
-                                </Text>
-                            </View>
-                        </View>
-                    </View>
-                </LinearGradient>
-
-                {/* Transactions Section */}
-                <View style={homeStyles.transactionsSection}>
-                    <View style={commonStyles.sectionHeader}>
-                        <Text style={commonStyles.sectionTitle}>Transactions</Text>
-                        <TouchableOpacity>
-                            <Text style={commonStyles.seeAllText}>See All</Text>
-                        </TouchableOpacity>
-                    </View>
-
-                    {transactions.length === 0 ? (
-                        <View style={{
-                            padding: 40,
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            backgroundColor: COLORS.card,
-                            borderRadius: 20,
-                            marginTop: 10,
-                            borderWidth: 1,
-                            borderColor: COLORS.border,
-                            borderStyle: 'dashed'
-                        }}>
-                            <View style={{
-                                width: 80,
-                                height: 80,
-                                borderRadius: 40,
-                                backgroundColor: COLORS.primary + '10',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                marginBottom: 16
-                            }}>
-                                <Ionicons name="receipt-outline" size={40} color={COLORS.primary} />
-                            </View>
-                            <Text style={{
-                                color: COLORS.text,
-                                fontSize: 18,
-                                fontWeight: 'bold',
-                                marginBottom: 8,
-                                textAlign: 'center'
-                            }}>No transactions yet</Text>
-                            <Text style={{
-                                color: COLORS.textLight,
-                                fontSize: 14,
-                                textAlign: 'center',
-                                marginBottom: 24,
-                                lineHeight: 20
-                            }}>Start tracking your expenses and income to see them here.</Text>
-
-                            <TouchableOpacity
-                                style={{
-                                    backgroundColor: COLORS.primary,
-                                    paddingVertical: 12,
-                                    paddingHorizontal: 24,
-                                    borderRadius: 12,
-                                    flexDirection: 'row',
-                                    alignItems: 'center'
-                                }}
-                                onPress={() => setShowQuickActions(true)}
-                            >
-                                <Ionicons name="add" size={20} color={COLORS.white} style={{ marginRight: 8 }} />
-                                <Text style={{ color: COLORS.white, fontWeight: '600' }}>Add Transaction</Text>
-                            </TouchableOpacity>
-                        </View>
-                    ) : (
-                        transactions.map((transaction) => {
-                            const isExpense = transaction.type === "expense";
-                            const amount = parseFloat(transaction.amount);
-
-                            // Map backend icons or use defaults
-                            const icon = isExpense ? "remove-circle" : "add-circle";
-                            const color = isExpense ? COLORS.secondary : COLORS.primary;
-
-                            return (
-                                <TouchableOpacity
-                                    key={transaction.id}
-                                    style={commonStyles.transactionItem}
-                                    activeOpacity={0.7}
-                                >
-                                    <View style={commonStyles.transactionLeft}>
-                                        <View
-                                            style={[
-                                                commonStyles.transactionIcon,
-                                                { backgroundColor: color + "15" },
-                                            ]}
-                                        >
-                                            <Ionicons
-                                                name={icon}
-                                                size={24}
-                                                color={color}
-                                            />
-                                        </View>
-                                        <View>
-                                            <Text style={commonStyles.transactionType}>
-                                                {transaction.title}
-                                            </Text>
-                                            <Text style={commonStyles.transactionTime}>
-                                                {new Date(transaction.date).toLocaleDateString()}
-                                            </Text>
-                                        </View>
-                                    </View>
-                                    <Text
-                                        style={[
-                                            commonStyles.transactionAmount,
-                                            !isExpense
-                                                ? commonStyles.positiveAmount
-                                                : commonStyles.negativeAmount,
-                                        ]}
-                                    >
-                                        {!isExpense ? "+" : "-"}$
-                                        {Math.abs(amount).toFixed(2)}
-                                    </Text>
-                                </TouchableOpacity>
-                            );
-                        })
-                    )}
+    const renderBalanceCard = () => (
+        <LinearGradient
+            colors={[COLORS.primary, darkenColor(COLORS.primary, 30)]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={[homeStyles.balanceCard, isDesktop && { marginHorizontal: 0 }]}
+        >
+            <View style={homeStyles.balanceHeader}>
+                <View style={homeStyles.balanceLabelContainer}>
+                    <Text style={[homeStyles.balanceLabel, { fontFamily: 'nimbu-demo' }]}>Total Balance</Text>
+                    <Ionicons name="chevron-down" size={16} color={COLORS.white} />
                 </View>
-            </ScrollView>
+                <TouchableOpacity>
+                    <Ionicons
+                        name="ellipsis-horizontal"
+                        size={20}
+                        color={COLORS.white}
+                    />
+                </TouchableOpacity>
+            </View>
 
-            {/* Quick Actions Bottom Sheet */}
+            <Text style={[homeStyles.balanceAmount, { fontFamily: 'nimbu-demo', fontSize: 42 }]}>
+                ${stats.totalBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+            </Text>
+
+            <View style={homeStyles.balanceDetails}>
+                <View style={homeStyles.balanceItem}>
+                    <View style={homeStyles.iconContainer}>
+                        <Ionicons name="arrow-down-circle" size={20} color={COLORS.white} />
+                    </View>
+                    <View>
+                        <Text style={[homeStyles.balanceItemLabel, { fontFamily: 'nimbu-demo' }]}>Income</Text>
+                        <Text style={[homeStyles.balanceItemAmount, { fontFamily: 'nimbu-demo' }]}>
+                            ${stats.income.toLocaleString()}
+                        </Text>
+                    </View>
+                </View>
+
+                <View style={homeStyles.balanceItem}>
+                    <View style={homeStyles.iconContainer}>
+                        <Ionicons name="arrow-up-circle" size={20} color={COLORS.white} />
+                    </View>
+                    <View>
+                        <Text style={[homeStyles.balanceItemLabel, { fontFamily: 'nimbu-demo' }]}>Expenses</Text>
+                        <Text style={[homeStyles.balanceItemAmount, { fontFamily: 'nimbu-demo' }]}>
+                            ${stats.expenses.toLocaleString()}
+                        </Text>
+                    </View>
+                </View>
+            </View>
+        </LinearGradient>
+    );
+
+    const renderTransactions = () => (
+        <View style={[homeStyles.transactionsSection, isDesktop && { paddingHorizontal: 0 }]}>
+            <View style={commonStyles.sectionHeader}>
+                <Text style={commonStyles.sectionTitle}>Recent Transactions</Text>
+                <TouchableOpacity>
+                    <Text style={commonStyles.seeAllText}>See All</Text>
+                </TouchableOpacity>
+            </View>
+
+            {transactions.length === 0 ? (
+                <View style={{
+                    padding: 40,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    backgroundColor: COLORS.card,
+                    borderRadius: 20,
+                    marginTop: 10,
+                    borderWidth: 1,
+                    borderColor: COLORS.border,
+                    borderStyle: 'dashed'
+                }}>
+                    <Ionicons name="receipt-outline" size={48} color={COLORS.textLight} />
+                    <Text style={{ color: COLORS.textLight, marginTop: 12 }}>No transactions yet</Text>
+                </View>
+            ) : (
+                transactions.slice(0, 10).map((transaction) => {
+                    const isExpense = transaction.type === "expense";
+                    const amount = parseFloat(transaction.amount);
+                    const color = isExpense ? COLORS.secondary : COLORS.primary;
+
+                    return (
+                        <TouchableOpacity
+                            key={transaction.id}
+                            style={[commonStyles.transactionItem, homeStyles.webHoverEffect]}
+                            activeOpacity={0.7}
+                        >
+                            <View style={commonStyles.transactionLeft}>
+                                <View style={[commonStyles.transactionIcon, { backgroundColor: color + "15" }]}>
+                                    <Ionicons name={isExpense ? "arrow-up" : "arrow-down"} size={22} color={color} />
+                                </View>
+                                <View>
+                                    <Text style={commonStyles.transactionType}>{transaction.title}</Text>
+                                    <Text style={commonStyles.transactionTime}>{new Date(transaction.date).toLocaleDateString()}</Text>
+                                </View>
+                            </View>
+                            <Text style={[commonStyles.transactionAmount, !isExpense ? commonStyles.positiveAmount : commonStyles.negativeAmount]}>
+                                {!isExpense ? "+" : "-"}${Math.abs(amount).toFixed(2)}
+                            </Text>
+                        </TouchableOpacity>
+                    );
+                })
+            )}
+        </View>
+    );
+
+    return (
+        <ScrollView
+            style={commonStyles.container}
+            contentContainerStyle={isDesktop && commonStyles.webContainer}
+            showsVerticalScrollIndicator={false}
+            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        >
+            {/* Header Top Row */}
+            <View style={homeStyles.headerTop}>
+                <TouchableOpacity
+                    style={commonStyles.headerIcon}
+                    onPress={() => setShowQuickActions(true)}
+                >
+                    <Ionicons name="apps-outline" size={24} color={COLORS.text} />
+                </TouchableOpacity>
+
+                <Text style={{
+                    fontFamily: "nimbu-demo",
+                    fontSize: 18,
+                    fontWeight: "600",
+                    color: COLORS.text,
+                }}>Home</Text>
+
+                <TouchableOpacity style={commonStyles.headerIcon}>
+                    <Ionicons name="notifications-outline" size={24} color={COLORS.text} />
+                </TouchableOpacity>
+            </View>
+
+            {/* User Greeting Section */}
+            <View style={homeStyles.userInfo}>
+                <Text style={[homeStyles.userGreeting, { fontFamily: "nimbu-demo" }]}>
+                    Hi, {user?.firstName || "User"} 👋
+                </Text>
+                <Text style={{
+                    fontFamily: "nimbu-demo",
+                    fontSize: 28,
+                    fontWeight: "bold",
+                    color: COLORS.text,
+                }}>Dashboard</Text>
+            </View>
+
+            {isDesktop ? (
+                <View style={homeStyles.desktopContainer}>
+                    <View style={homeStyles.leftColumn}>
+                        {renderBalanceCard()}
+                        <View style={{ marginTop: 24 }}>
+                            <Text style={[commonStyles.sectionTitle, { marginBottom: 16 }]}>Quick Access</Text>
+                            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
+                                {quickActions.map(action => (
+                                    <TouchableOpacity
+                                        key={action.label}
+                                        onPress={action.onPress}
+                                        style={{
+                                            backgroundColor: action.color + '10',
+                                            padding: 16,
+                                            borderRadius: 12,
+                                            width: '47%',
+                                            alignItems: 'center',
+                                            borderWidth: 1,
+                                            borderColor: action.color + '30'
+                                        }}
+                                    >
+                                        <Ionicons name={action.icon} size={24} color={action.color} />
+                                        <Text style={{ marginTop: 8, fontSize: 12, fontWeight: '600', color: action.color }}>{action.label}</Text>
+                                    </TouchableOpacity>
+                                ))}
+                            </View>
+                        </View>
+                    </View>
+                    <View style={homeStyles.rightColumn}>
+                        {renderTransactions()}
+                    </View>
+                </View>
+            ) : (
+                <>
+                    {renderBalanceCard()}
+                    {renderTransactions()}
+                </>
+            )}
+
             <QuickActions
                 visible={showQuickActions}
                 onClose={() => setShowQuickActions(false)}
                 actions={quickActions}
             />
-        </>
+        </ScrollView>
     );
 };
 
