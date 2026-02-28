@@ -8,13 +8,24 @@ const apiClient = axios.create({
     },
 });
 
-// You can add interceptors here later if you need to add Clerk tokens
-// apiClient.interceptors.request.use(async (config) => {
-//   const token = await getToken();
-//   if (token) {
-//     config.headers.Authorization = `Bearer ${token}`;
-//   }
-//   return config;
-// });
+let getToken = null;
+
+export const setGetToken = (fn) => {
+    getToken = fn;
+};
+
+apiClient.interceptors.request.use(async (config) => {
+    if (getToken) {
+        try {
+            const token = await getToken();
+            if (token) {
+                config.headers.Authorization = `Bearer ${token}`;
+            }
+        } catch (error) {
+            console.error('Error getting auth token:', error);
+        }
+    }
+    return config;
+});
 
 export default apiClient;

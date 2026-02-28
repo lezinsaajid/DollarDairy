@@ -12,6 +12,7 @@
   "type": "commonjs",
   "dependencies": {
     "@clerk/clerk-expo": "^2.17.1",
+    "@clerk/clerk-sdk-node": "^4.13.23",
     "@neondatabase/serverless": "github:neondatabase/serverless",
     "cors": "^2.8.5",
     "cron": "^4.3.3",

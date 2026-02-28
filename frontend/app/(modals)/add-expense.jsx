@@ -18,19 +18,31 @@ import { Calendar } from "react-native-calendars";
 
 import { useUser } from "@clerk/clerk-expo";
 import useTransactionStore from "../../store/useTransactionStore";
+import useCategoryStore from "../../store/useCategoryStore";
 
 const AddExpensePage = () => {
     const router = useRouter();
     const { user } = useUser();
     const { addTransaction } = useTransactionStore();
+    const { categories, fetchCategories } = useCategoryStore();
 
     const today = new Date().toISOString().split('T')[0];
     const [selectedDate, setSelectedDate] = useState(today);
     const [expenseTitle, setExpenseTitle] = useState("");
     const [amount, setAmount] = useState("");
-    const [selectedCategory, setSelectedCategory] = useState("Food");
+    const [selectedCategory, setSelectedCategory] = useState(null);
 
-    const categories = ["Food", "Transport", "Shopping", "Bills", "Entertainment"];
+    useEffect(() => {
+        fetchCategories();
+    }, []);
+
+    // Effect to set default category once loaded
+    useEffect(() => {
+        if (categories.length > 0 && !selectedCategory) {
+            const firstExpenseCat = categories.find(c => c.type === 'expense');
+            if (firstExpenseCat) setSelectedCategory(firstExpenseCat);
+        }
+    }, [categories]);
 
     const handleSubmit = async () => {
         if (!expenseTitle || !amount) {
@@ -45,7 +57,7 @@ const AddExpensePage = () => {
                 amount: parseFloat(amount),
                 type: 'expense',
                 date: selectedDate,
-                categoryId: null, // Categories implementation is Phase 2
+                categoryId: selectedCategory?.id || null,
             });
 
             // Navigate back
@@ -148,12 +160,12 @@ const AddExpensePage = () => {
                     <View style={addFormStyles.inputGroup}>
                         <Text style={addFormStyles.inputLabel}>Category</Text>
                         <View style={addFormStyles.categoryContainer}>
-                            {categories.map((category) => (
+                            {categories.filter(c => c.type === 'expense').map((category) => (
                                 <TouchableOpacity
-                                    key={category}
+                                    key={category.id}
                                     style={[
                                         addFormStyles.categoryButton,
-                                        selectedCategory === category &&
+                                        selectedCategory?.id === category.id &&
                                         addFormStyles.categoryButtonExpenseActive,
                                     ]}
                                     onPress={() => setSelectedCategory(category)}
@@ -161,15 +173,18 @@ const AddExpensePage = () => {
                                     <Text
                                         style={[
                                             addFormStyles.categoryText,
-                                            selectedCategory === category &&
+                                            selectedCategory?.id === category.id &&
                                             addFormStyles.categoryTextActive,
                                         ]}
                                     >
-                                        {category}
+                                        {category.name}
                                     </Text>
                                 </TouchableOpacity>
                             ))}
-                            <TouchableOpacity style={addFormStyles.addCategoryButton}>
+                            {categories.filter(c => c.type === 'expense').length === 0 && (
+                                <Text style={{ color: COLORS.textLight, fontSize: 12 }}>No expense categories. Add one in Settings.</Text>
+                            )}
+                            <TouchableOpacity style={addFormStyles.addCategoryButton} onPress={() => router.push("/(modals)/settings")}>
                                 <Ionicons name="add" size={20} color={COLORS.text} />
                             </TouchableOpacity>
                         </View>

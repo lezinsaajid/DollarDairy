@@ -1,10 +1,21 @@
 import { useState, useEffect } from "react";
 import { Slot } from "expo-router";
-import { ClerkProvider } from "@clerk/clerk-expo";
+import { ClerkProvider, useAuth } from "@clerk/clerk-expo";
 import { tokenCache } from "@clerk/clerk-expo/token-cache";
 import { StatusBar } from "expo-status-bar";
 import SafeScreen from "@/components/SafeScreen";
 import * as Font from "expo-font";
+import { setGetToken } from "../api/client";
+
+function AuthConfig() {
+  const { getToken } = useAuth();
+
+  useEffect(() => {
+    setGetToken(getToken);
+  }, [getToken]);
+
+  return null;
+}
 
 export default function RootLayout() {
   const [fontsLoaded, setFontsLoaded] = useState(false);
@@ -19,6 +30,7 @@ export default function RootLayout() {
 
   return (
     <ClerkProvider tokenCache={tokenCache}>
+      <AuthConfig />
       <StatusBar style="auto" />
       <SafeScreen>
         <Slot />

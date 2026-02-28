@@ -18,19 +18,31 @@ import { Calendar } from "react-native-calendars";
 
 import { useUser } from "@clerk/clerk-expo";
 import useTransactionStore from "../../store/useTransactionStore";
+import useCategoryStore from "../../store/useCategoryStore";
 
 const AddIncomePage = () => {
     const router = useRouter();
     const { user } = useUser();
     const { addTransaction } = useTransactionStore();
+    const { categories, fetchCategories } = useCategoryStore();
 
     const today = new Date().toISOString().split('T')[0];
     const [selectedDate, setSelectedDate] = useState(today);
     const [incomeTitle, setIncomeTitle] = useState("");
     const [amount, setAmount] = useState("");
-    const [selectedCategory, setSelectedCategory] = useState("Salary");
+    const [selectedCategory, setSelectedCategory] = useState(null);
 
-    const categories = ["Salary", "Freelance", "Discount", "Investment", "Gift"];
+    useEffect(() => {
+        fetchCategories();
+    }, []);
+
+    // Effect to set default category once loaded
+    useEffect(() => {
+        if (categories.length > 0 && !selectedCategory) {
+            const firstIncomeCat = categories.find(c => c.type === 'income');
+            if (firstIncomeCat) setSelectedCategory(firstIncomeCat);
+        }
+    }, [categories]);
 
     const handleSubmit = async () => {
         if (!incomeTitle || !amount) {
@@ -45,7 +57,7 @@ const AddIncomePage = () => {
                 amount: parseFloat(amount),
                 type: 'income',
                 date: selectedDate,
-                categoryId: null, // Categories implementation is Phase 2
+                categoryId: selectedCategory?.id || null,
             });
 
             // Navigate back
@@ -147,12 +159,12 @@ const AddIncomePage = () => {
                     <View style={addFormStyles.inputGroup}>
                         <Text style={addFormStyles.inputLabel}>Category</Text>
                         <View style={addFormStyles.categoryContainer}>
-                            {categories.map((category) => (
+                            {categories.filter(c => c.type === 'income').map((category) => (
                                 <TouchableOpacity
-                                    key={category}
+                                    key={category.id}
                                     style={[
                                         addFormStyles.categoryButton,
-                                        selectedCategory === category &&
+                                        selectedCategory?.id === category.id &&
                                         addFormStyles.categoryButtonActive,
                                     ]}
                                     onPress={() => setSelectedCategory(category)}
@@ -160,15 +172,18 @@ const AddIncomePage = () => {
                                     <Text
                                         style={[
                                             addFormStyles.categoryText,
-                                            selectedCategory === category &&
+                                            selectedCategory?.id === category.id &&
                                             addFormStyles.categoryTextActive,
                                         ]}
                                     >
-                                        {category}
+                                        {category.name}
                                     </Text>
                                 </TouchableOpacity>
                             ))}
-                            <TouchableOpacity style={addFormStyles.addCategoryButton}>
+                            {categories.filter(c => c.type === 'income').length === 0 && (
+                                <Text style={{ color: COLORS.textLight, fontSize: 12 }}>No income categories. Add one in Settings.</Text>
+                            )}
+                            <TouchableOpacity style={addFormStyles.addCategoryButton} onPress={() => router.push("/(modals)/settings")}>
                                 <Ionicons name="add" size={20} color={COLORS.text} />
                             </TouchableOpacity>
                         </View>
